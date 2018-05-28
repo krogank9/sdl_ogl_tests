@@ -37,6 +37,7 @@ endif(EMSCRIPTEN)
 add_subdirectory(ogl1)
 add_subdirectory(ogl2)
 add_subdirectory(ogl3)
+add_subdirectory(ogl4)
 
 if (NOT ${PROJECT_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_BINARY_DIR})
 	file(COPY "${PROJECT_SOURCE_DIR}/res" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

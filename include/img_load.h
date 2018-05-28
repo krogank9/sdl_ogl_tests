@@ -13,7 +13,7 @@ unsigned char* loadImg(std::string name, int* width, int *height, std::string re
 	SDL_Log("loading %s", filePath.c_str());
 
 	SDL_Surface* img = SDL_LoadBMP(filePath.c_str());
-	long length = (img->w * img->h) * 4;
+	long length = (img->w * img->h) * img->format->BytesPerPixel;
 
 	(*width) = img->w;
 	(*height) = img->h;
@@ -25,7 +25,7 @@ unsigned char* loadImg(std::string name, int* width, int *height, std::string re
 	while (pos < length)
 	{
 		SDL_GetRGBA( *upx, img->format, data+pos+0, data+pos+1, data+pos+2, data+pos+3 );
-		pos += 4;
+		pos += img->format->BytesPerPixel;
 		upx++;
 	}
 
