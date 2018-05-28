@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
-project(TwinklebearDevLessons)
+project(SDLLessons)
 
 # Use our modified FindSDL2* modules
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${TwinklebearDevLessons_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SDLLessons_SOURCE_DIR}/cmake")
 set(BIN_DIR ${TwinklebearDevLessons_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -19,17 +19,24 @@ else()
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} -O2")
 endif()
 
-find_package(SDL2 REQUIRED)
-include_directories(${SDL2_INCLUDE_DIR})
 include_directories(include)
 
-add_subdirectory(Lesson0)
-add_subdirectory(Lesson1)
-add_subdirectory(Lesson2)
-add_subdirectory(Lesson3)
-add_subdirectory(Lesson4)
-add_subdirectory(Lesson5)
-add_subdirectory(Lesson6)
+if (EMSCRIPTEN)
+    message("Building for emscripten")
+
+    set(CMAKE_EXECUTABLE_SUFFIX ".html")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2 -s FULL_ES2=1 --embed-file ../res")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s USE_SDL=2 -s FULL_ES2=1 --embed-file ../res")
+else(EMSCRIPTEN)
+    find_package(SDL2 REQUIRED)
+    include_directories(${SDL2_INCLUDE_DIR})
+    add_definitions(-DDAT_IN_RAM)
+    add_subdirectory(twinklebear)
+endif(EMSCRIPTEN)
+
+add_subdirectory(ogl1)
+add_subdirectory(ogl2)
+add_subdirectory(ogl3)
 
 if (NOT ${PROJECT_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_BINARY_DIR})
 	file(COPY "${PROJECT_SOURCE_DIR}/res" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

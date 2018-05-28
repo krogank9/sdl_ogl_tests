@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 2.6)
+project(twinklelessons)
+
+add_subdirectory(Lesson0)
+add_subdirectory(Lesson1)
+add_subdirectory(Lesson2)
+add_subdirectory(Lesson3)
+add_subdirectory(Lesson4)
+add_subdirectory(Lesson5)
+add_subdirectory(Lesson6)
