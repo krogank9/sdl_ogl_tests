@@ -41,7 +41,7 @@ static const GLuint g_vertex_indices[] = {
 
 void initGL()
 {
-	program = Shader("tex.vert", "tex.frag");
+	program = Shader("transform.vert", "transform.frag");
 
 	// Generate 1 buffer, put the resulting identifier in vertexbuffer
 	glGenBuffers(1, &vertexbuffer);

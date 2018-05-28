@@ -19,8 +19,8 @@ file(GLOB nanovg_SRC
 )
 
 file(GLOB shaders_SRC
-    "../res/shaders/tex.vert"
-    "../res/shaders/tex.frag"
+    "../res/shaders/transform.vert"
+    "../res/shaders/transform.frag"
 )
 
 add_executable(ogl3 ${nanovg_SRC} ${shaders_SRC})
