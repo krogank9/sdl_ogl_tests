@@ -1,13 +1,32 @@
-#ifndef RES_PATH_H
-#define RES_PATH_H
+#include "utils.h"
 
-#include <iostream>
-#include <string>
-#include <SDL.h>
+unsigned char* Utils::loadImg(std::string name, int* width, int *height, std::string resFolder)
+{
+	std::string filePath = getResourcePath(resFolder)+name;
 
-std::string getResourcePath(const std::string &subDir = "");
+	SDL_Log("loading %s", filePath.c_str());
 
-#ifdef RES_PATH_IMPLEMENTATION
+	SDL_Surface* img = SDL_LoadBMP(filePath.c_str());
+	long length = (img->w * img->h) * img->format->BytesPerPixel;
+
+	(*width) = img->w;
+	(*height) = img->h;
+
+	uint32_t* upx = (uint32_t*)img->pixels;
+
+	unsigned char* data = (unsigned char*)malloc(length);
+	long pos = 0;
+	while (pos < length)
+	{
+		SDL_GetRGBA( *upx, img->format, data+pos+0, data+pos+1, data+pos+2, data+pos+3 );
+		pos += img->format->BytesPerPixel;
+		upx++;
+	}
+
+	SDL_FreeSurface(img);
+
+	return data;
+}
 
 /*
  * Get the resource path for resources located in res/subDir
@@ -20,7 +39,7 @@ std::string getResourcePath(const std::string &subDir = "");
  *
  * Paths returned will be Project_Root/res/subDir
  */
-std::string getResourcePath(const std::string &subDir){
+std::string Utils::getResourcePath(const std::string &subDir){
 #ifdef _WIN32
 	const char PATH_SEP = '\\';
 #else
@@ -43,7 +62,3 @@ std::string getResourcePath(const std::string &subDir){
 	}
 	return subDir.empty() ? baseRes : baseRes + subDir + PATH_SEP;
 }
-
-#endif
-
-#endif

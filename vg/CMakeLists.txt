@@ -1,4 +1,4 @@
-project(ogl4)
+project(vg)
 
 if (EMSCRIPTEN)
     message("Building for emscripten")
@@ -19,13 +19,13 @@ file(GLOB nanovg_SRC
 )
 
 file(GLOB shaders_SRC
-    "../res/shaders/coords.vert"
-    "../res/shaders/coords.frag"
+    "../res/shaders/vg_test.vert"
+    "../res/shaders/vg_test.frag"
 )
 
-add_executable(ogl4 ${nanovg_SRC} ${shaders_SRC})
+add_executable(vg ${nanovg_SRC} ${shaders_SRC})
 if (NOT EMSCRIPTEN)
-    target_link_libraries(ogl4 ${SDL2_LIBRARY} ${OPENGLES2_LIBRARY})
+    target_link_libraries(vg ${SDL2_LIBRARY} ${OPENGLES2_LIBRARY})
 endif(NOT EMSCRIPTEN)
-install(TARGETS ogl4 RUNTIME DESTINATION ${BIN_DIR})
+install(TARGETS vg RUNTIME DESTINATION ${BIN_DIR})
 

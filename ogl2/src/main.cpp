@@ -2,6 +2,8 @@
 #include <emscripten/emscripten.h>
 #endif
 
+#define RES_PATH_IMPLEMENTATION
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL_opengles2.h>
@@ -19,7 +21,7 @@ GLuint texture1;
 GLuint texture2;
 
 // An array of 3 vectors which represents 3 vertices
-static const GLfloat g_vertex_buffer_data[] = {
+static GLfloat g_vertex_buffer_data[] = {
 	//-1.0f, 1.0f // left top
 	//1.0f, 1.0f, // right top
 	//1.0f,  -1.0f // right bot
@@ -30,7 +32,7 @@ static const GLfloat g_vertex_buffer_data[] = {
 	-0.5f, -0.5f, 0.0f,		0.0f, 0.0f, 1.0f,	0.0f, 2.0f, // left bot
 };
 
-static const GLuint g_vertex_indices[] = {
+static GLuint g_vertex_indices[] = {
 	0, 1, 2, // first triangle
 	0, 2, 3 // second triangle
 };

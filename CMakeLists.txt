@@ -31,13 +31,14 @@ else(EMSCRIPTEN)
     find_package(SDL2 REQUIRED)
     include_directories(${SDL2_INCLUDE_DIR})
     add_definitions(-DDAT_IN_RAM)
-    add_subdirectory(twinklebear)
 endif(EMSCRIPTEN)
 
 add_subdirectory(ogl1)
 add_subdirectory(ogl2)
 add_subdirectory(ogl3)
 add_subdirectory(ogl4)
+
+add_subdirectory(vg)
 
 if (NOT ${PROJECT_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_BINARY_DIR})
 	file(COPY "${PROJECT_SOURCE_DIR}/res" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

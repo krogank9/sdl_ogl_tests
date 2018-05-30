@@ -2,6 +2,8 @@
 #include <emscripten/emscripten.h>
 #endif
 
+#define RES_PATH_IMPLEMENTATION
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL_opengles2.h>
@@ -116,6 +118,7 @@ void render(int width, int height)
 	transform = glm::rotate(transform, glm::radians((float)((SDL_GetTicks()/15)%360)), glm::vec3(0.0f, 0.0f, 1.0f));
 	glUniformMatrix4fv(program.getUniformLocation("transform"), 1, GL_FALSE, glm::value_ptr(transform));
 	glUniform1f(program.getUniformLocation("fade"), botValue);
+
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	long int csize = sizeof(float)*3;

@@ -2,6 +2,8 @@
 #include <emscripten/emscripten.h>
 #endif
 
+#define RES_PATH_IMPLEMENTATION
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL_opengles2.h>

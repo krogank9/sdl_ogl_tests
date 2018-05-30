@@ -2,6 +2,8 @@
 #include <emscripten/emscripten.h>
 #endif
 
+#define RES_PATH_IMPLEMENTATION
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL_opengles2.h>
@@ -41,7 +43,7 @@ static const GLuint g_vertex_indices[] = {
 
 void initGL()
 {
-	program = Shader("transform.vert", "transform.frag");
+	program = Shader("coords.vert", "coords.frag");
 
 	// Generate 1 buffer, put the resulting identifier in vertexbuffer
 	glGenBuffers(1, &vertexbuffer);
