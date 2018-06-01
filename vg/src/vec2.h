@@ -76,20 +76,40 @@ public:
 		this->y = y;
 	}
 
-	void rotate(double deg) {
+	vec2 rotate(double deg) const {
 		double theta = deg / 180.0 * M_PI;
 		double c = cos(theta);
 		double s = sin(theta);
 		double tx = x * c - y * s;
 		double ty = x * s + y * c;
-		x = tx;
-		y = ty;
+		return vec2(tx,ty);
 	}
 
-	vec2& normalize() {
-		if (length() == 0) return *this;
-		*this *= (1.0 / length());
-		return *this;
+	vec2 rotate90CW() const { return vec2(-y, x); }
+
+	vec2 rotate90CCW() const { return vec2(y, -x); }
+
+	vec2 rotate180() const { return vec2(-x, -y); }
+
+	vec2 normalize() const {
+		if (length() == 0)
+			return vec2(0,0);
+		return vec2(x/length(), y/length());
+	}
+
+	vec2 avg(vec2& other) const
+	{
+		return vec2((x+other.x)/2, (y+other.y)/2);
+	}
+
+	vec2 avgByAngleTo(vec2& other) const
+	{
+		double myAngle = atan2(y, x);
+		double otherAngle = atan2(other.y, other.x);
+		if (otherAngle < myAngle)
+			otherAngle += M_PI*2;
+		double halfwayAngle = (otherAngle - myAngle)/2;
+		return rotate(halfwayAngle);
 	}
 
 	float dist(vec2 v) const {
@@ -99,10 +119,9 @@ public:
 	float length() const {
 		return std::sqrt(x * x + y * y);
 	}
-	void truncate(double length) {
+	vec2 truncate(double length) {
 		double angle = atan2f(y, x);
-		x = length * cos(angle);
-		y = length * sin(angle);
+		return vec2(length * cos(angle), length * sin(angle));
 	}
 
 	vec2 ortho() const {

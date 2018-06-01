@@ -1,10 +1,11 @@
 #ifndef TRI_CACHE_H
 #define TRI_CACHE_H
 
-#include "texture.h"
+#include <GLES3/gl31.h>
+
 #include "vec2.h"
 #include "vec4.h"
-#include "SDL_opengles2.h"
+#include "texture.h"
 
 using namespace std;
 
@@ -20,8 +21,11 @@ public:
 	~TriCache();
 
 	void render(vec2f pos, vec2f scale, float rotation,
-				const Texture& texture, const Texture& target, const Texture& mask,
+				const Texture& texture, Texture& target, const Texture& mask,
 				float blendMultiplier=1.0f) const;
+
+	void renderFinal(vec2f pos, vec2f scale,
+				const Texture& texture, Texture& target) const;
 
 private:
 	Context* ctx;

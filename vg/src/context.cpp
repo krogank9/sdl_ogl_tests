@@ -22,12 +22,14 @@ static const GLuint unit_tri_indices[] = {
 };
 
 Context::Context()
-	: vgShader("vg_test.vert", "vg_test.frag"),
-	  white_texture(Color::WHITE()),
-	  clear_texture(Color::TRANSPARENT()),
-	  unit_tri_cache(this, unit_tri_verts, 8, unit_tri_indices, 6, unit_tri_tex_coords)
+	: vg_shader("vg_test.vert", "vg_test.frag"),
+	  white_texture(this, Color::WHITE()),
+	  clear_texture(this, Color::TRANSPARENT()),
+	  grey_texture(this, Color(100, 100, 100, 255)),
+	  unit_tri_cache(this, unit_tri_verts, 8, unit_tri_indices, 6, unit_tri_tex_coords),
+	  render_frame_num(0)
 {
-	vgShader.use();
-	vgShader.setInt("render_texture", 0);
-	vgShader.setInt("mask_texture", 1);
+	vg_shader.use();
+	vg_shader.setInt("texture", 0);
+	vg_shader.setInt("mask_texture", 1);
 }

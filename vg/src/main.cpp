@@ -6,8 +6,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <SDL_opengles2.h>
-#include "SDL.h"
+#include <SDL.h>
+#include <GLES3/gl31.h>
+
 #include "img_load.h"
 #include "context.h"
 #include "tri_cache.h"
@@ -16,10 +17,56 @@
 int winWidth, winHeight;
 SDL_Window* window;
 
+#include <vector>
+#include <iostream>
+std::vector<int> all_calcs;
+Uint32 last_calc(0);
+Uint32 last_print_time(0);
+
+void calc_FPS()
+{
+	Uint32 now = SDL_GetTicks();
+	Uint32 elapsed = now - last_calc;
+	last_calc = now;
+
+	all_calcs.push_back(elapsed);
+	if (all_calcs.size()>100)
+		all_calcs.erase(all_calcs.begin());
+
+	if (now-last_print_time > 1000 && all_calcs.size() > 0)
+	{
+		Uint32 avg_frame_time = 0;
+		for (int i=0; i<all_calcs.size(); i++)
+			avg_frame_time += all_calcs[i];
+		float FPS = 1000.f/(avg_frame_time / all_calcs.size());
+
+		last_print_time = now;
+		std::cout << "FPS: " << FPS << std::endl;
+	}
+}
+
+class TexturePtr
+{
+public:
+	TexturePtr(const TexturePtr& copy) { counter = copy.counter; (*counter)++; ptr = copy.ptr; }
+	TexturePtr(Context* ctx, int width, int height) { ptr = new Texture(ctx, width, height); counter = new int(1); }
+	~TexturePtr() { if (*counter == 1) { delete ptr; delete counter; } else (*counter)--; }
+
+	Texture& deref() { return *ptr; }
+
+	Texture* ptr;
+	int* counter;
+};
+
+#define NUM_COPIES 3
+#define WIN_NAME "fx"
+#define SSAA_LEVEL 1
+
 Context* ctx;
 TriCache* testCache;
-Texture* dummyTexture = new Texture(0,0,true);
-Texture* dummyCopy = new Texture(0,0);
+Texture* dummyTexture;
+Texture* dummyCopy;
+//std::vector<TexturePtr> dummyList;
 Texture* redTexture;
 Texture* blueTexture;
 Texture* greenTexture;
@@ -50,15 +97,18 @@ void initGL()
 {
 	ctx = new Context();
 
-	delete dummyTexture;
-	dummyTexture = new Texture(winWidth, winHeight, true);
+	//delete dummyTexture;
+	dummyTexture = new Texture(ctx, winWidth, winHeight, true);
 
 	delete dummyCopy;
-	dummyCopy = new Texture(dummyTexture->width, dummyTexture->height);
+	dummyCopy = new Texture(ctx, winWidth, winHeight);
+//	dummyCopy.clear();
+//	for (int level = SSAA_LEVEL; level > 0; level /= 2)
+//		dummyCopy.push_back(TexturePtr(ctx, winWidth*level, winHeight*level));
 
-	redTexture = new Texture(Color(255, 0, 0, 255));
-	blueTexture = new Texture(Color(0,0,255,255));
-	greenTexture = new Texture(Color::GREEN());
+	redTexture = new Texture(ctx, Color(255, 0, 0, 255));
+	blueTexture = new Texture(ctx, Color(0,0,255,255));
+	greenTexture = new Texture(ctx, Color::GREEN());
 
 	testCache = new TriCache(ctx, g_vertex_buffer_data, 8, g_vertex_indices, 6);
 }
@@ -74,24 +124,29 @@ void render(int width, int height)
 
 	/////////// loop
 	glDepthMask(false);
+	ctx->clear();
 
-	//testCache->render(vec2f(100.f, 100.f), vec2f(1.f,1.f), glm::radians(0.f), *greenTexture, *dummyTexture, ctx->white_texture);
-	//ctx->unit_tri_cache.render(vec2f(1024/2.f, 800/2.f), vec2f(100.f,100.f), glm::radians(15.f), *greenTexture, *dummyTexture, ctx->white_texture);
-
-	//ctx->unit_tri_cache.render(vec2f(0.f, 0.f), vec2f((float)dummyTexture->width,(float)dummyTexture->height), glm::radians(0.f), *greenTexture, *dummyTexture, ctx->white_texture);
-	ctx->unit_tri_cache.render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width/2.f,dummyCopy->height/2.f), glm::radians(45.f), *greenTexture, *dummyCopy, ctx->white_texture);
-	//ctx->unit_tri_cache.render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width/1.5f,dummyCopy->height/1.5f), glm::radians(0.f), *redTexture, *dummyCopy, ctx->white_texture);
-	ctx->unit_tri_cache.render(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyTexture->width/2.f,dummyTexture->height), glm::radians(0.f), *dummyCopy, *dummyTexture, ctx->white_texture);
-	//ctx->unit_tri_cache.render(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyCopy->width/1.5f,dummyCopy->height/1.5f), glm::radians(0.f), *redTexture, *dummyCopy, ctx->white_texture);
-	//ctx->unit_tri_cache.render(vec2f(0.f, 0.f), vec2f((float)dummyTexture->width,(float)dummyTexture->height), glm::radians(0.f), *dummyCopy, *dummyTexture, ctx->white_texture);
-
-	//testCache->render(vec2f(), vec2f(1,1), glm::radians(5.f), *redTexture, *dummyTexture, ctx->white_texture);
-	//testCache->render(vec2f(), vec2f(0.5,0.5), glm::radians(5.f), ctx->white_texture, *dummyTexture, ctx->white_texture, -1.0f);
-	//testCache->render(vec2f(), vec2f(), 0, *redTexture, *dummyTexture, ctx->white_texture);
+/*
+	//ctx->unit_tri_cache.render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width,dummyCopy->height), 0.f, ctx->grey_texture, *dummyCopy, ctx->white_texture);
+	bool every_other_sec = (SDL_GetTicks()%5000) < 2500;
+	ctx->unit_tri_cache.render(vec2f(dummyCopy[0].ptr->width/2.f, dummyCopy[0].ptr->height/2.f), vec2f(dummyCopy[0].ptr->width,dummyCopy[0].ptr->height), 0.f, every_other_sec?ctx->white_texture:ctx->clear_texture, dummyCopy[0].deref(), ctx->white_texture);
+	ctx->unit_tri_cache.render(vec2f(dummyCopy[0].ptr->width/2.f, dummyCopy[0].ptr->height/2.f), vec2f(dummyCopy[0].ptr->width,dummyCopy[0].ptr->height), 0.5f, ctx->grey_texture, dummyCopy[0].deref(), ctx->white_texture);
+	for (int i=1; i<dummyCopy.size(); i++)
+	{
+		ctx->unit_tri_cache.render(vec2f(dummyCopy[i].ptr->width/2.f, dummyCopy[i].ptr->height/2.f), vec2f(dummyCopy[i].ptr->width,dummyCopy[i].ptr->height), glm::radians(0.f), dummyCopy[i-1].deref(), dummyCopy[i].deref(), ctx->white_texture);
+	}
+	//ctx->unit_tri_cache.render(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyTexture->width,dummyTexture->height), glm::radians(0.f), dummyCopy.back().deref(), *dummyTexture, ctx->white_texture);
+	ctx->unit_tri_cache.renderFinal(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyTexture->width, dummyTexture->height), dummyCopy.back().deref(), *dummyTexture);
+*/
+	ctx->unit_tri_cache.render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width,dummyCopy->height), 0.5f, ctx->grey_texture, *dummyCopy, ctx->white_texture);
+	ctx->unit_tri_cache.render(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyTexture->width,dummyTexture->height), 0.f, *dummyCopy, *dummyTexture, ctx->white_texture);
 }
 
 void main_loop_iteration()
 {
+	render(winWidth, winHeight);
+	calc_FPS();
+
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
 	{
@@ -106,12 +161,16 @@ void main_loop_iteration()
 			{
 			case SDL_WINDOWEVENT_SIZE_CHANGED:
 				SDL_GetWindowSize(window, &winWidth, &winHeight);
-				glViewport(0,0, winWidth, winHeight);
 				std::cout << "resized" << std::endl;
 				delete dummyTexture;
-				dummyTexture = new Texture(winWidth, winHeight, true);
+				dummyTexture = new Texture(ctx, winWidth, winHeight, true);
 				delete dummyCopy;
-				dummyCopy = new Texture(winWidth, winHeight);
+				dummyCopy = new Texture(ctx, winWidth, winHeight);
+
+//				dummyCopy.clear();
+//				for (int level = SSAA_LEVEL; level > 0; level /= 2)
+//					dummyCopy.push_back(TexturePtr(ctx, winWidth*level, winHeight*level));
+
 				break;
 			case SDL_WINDOWEVENT_CLOSE:
 				std::cout << "closed" << std::endl;
@@ -119,10 +178,6 @@ void main_loop_iteration()
 			break;
 		}
 	}
-
-	glClear( GL_COLOR_BUFFER_BIT );
-
-	render(winWidth, winHeight);
 
 	SDL_GL_SwapWindow(window);//we have double bufferring by default, so make sure our changes get on the screen
 }
@@ -137,17 +192,16 @@ int main()
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "error: sdl2 init failed: %s", SDL_GetError());
 		return 1;
 	}
-	//better safe than sorry vv
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+	//SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
-	window = SDL_CreateWindow("Example", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 800,
+	window = SDL_CreateWindow(WIN_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 800,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);//only SDL_WINDOW_OPENGL may suffice
 	if (!window)//if it doesn't work, lower the bar
 	{

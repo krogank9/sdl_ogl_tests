@@ -8,16 +8,22 @@
 class Context
 {
 private:
-	Shader vgShader;
+	Shader vg_shader;
 
 	int viewport_width;
 	int viewport_height;
+
+	uint64_t render_frame_num;
+
 public:
 	Context();
 
-	Shader& getVgShader() { return vgShader; }
+	Shader& getVgShader() { return vg_shader; }
+	uint64_t getRenderFrame() { return render_frame_num; }
+	void clear() { ++render_frame_num; }
 
 	const Texture white_texture;
+	const Texture grey_texture;
 	const Texture clear_texture;
 	const TriCache unit_tri_cache;
 };
