@@ -22,9 +22,13 @@ public:
 	uint64_t getRenderFrame() { return render_frame_num; }
 	void clear() { ++render_frame_num; }
 
+	int internal_msaa_level;
+
+	// some debug & ease of use primitives
 	const Texture white_texture;
 	const Texture grey_texture;
 	const Texture clear_texture;
+	const Texture purple_texture;
 	const TriCache unit_tri_cache;
 };
 

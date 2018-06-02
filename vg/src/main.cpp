@@ -66,6 +66,7 @@ Context* ctx;
 TriCache* testCache;
 Texture* dummyTexture;
 Texture* dummyCopy;
+Texture* dummyCopy2;
 //std::vector<TexturePtr> dummyList;
 Texture* redTexture;
 Texture* blueTexture;
@@ -93,6 +94,20 @@ static GLuint g_vertex_indices[] = {
 	0, 2, 3 // second triangle
 };
 
+void MessageCallback( GLenum source,
+				 GLenum type,
+				 GLuint id,
+				 GLenum severity,
+				 GLsizei length,
+				 const GLchar* message,
+				 const void* userParam )
+{
+  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+		   ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+			type, severity, message );
+}
+
+
 void initGL()
 {
 	ctx = new Context();
@@ -102,6 +117,9 @@ void initGL()
 
 	delete dummyCopy;
 	dummyCopy = new Texture(ctx, winWidth, winHeight);
+
+	delete dummyCopy2;
+	dummyCopy2 = new Texture(ctx, winWidth, winHeight);
 //	dummyCopy.clear();
 //	for (int level = SSAA_LEVEL; level > 0; level /= 2)
 //		dummyCopy.push_back(TexturePtr(ctx, winWidth*level, winHeight*level));
@@ -111,6 +129,9 @@ void initGL()
 	greenTexture = new Texture(ctx, Color::GREEN());
 
 	testCache = new TriCache(ctx, g_vertex_buffer_data, 8, g_vertex_indices, 6);
+
+	glEnable(GL_DEBUG_OUTPUT);
+	glDebugMessageCallback(MessageCallback, 0);
 }
 
 void render(int width, int height)
@@ -138,7 +159,14 @@ void render(int width, int height)
 	//ctx->unit_tri_cache.render(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyTexture->width,dummyTexture->height), glm::radians(0.f), dummyCopy.back().deref(), *dummyTexture, ctx->white_texture);
 	ctx->unit_tri_cache.renderFinal(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyTexture->width, dummyTexture->height), dummyCopy.back().deref(), *dummyTexture);
 */
-	ctx->unit_tri_cache.render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width,dummyCopy->height), 0.5f, ctx->grey_texture, *dummyCopy, ctx->white_texture);
+
+	ctx->unit_tri_cache.render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width,dummyCopy->height), 0.f, ctx->white_texture, *dummyCopy2, ctx->white_texture); // bg
+	ctx->unit_tri_cache.render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width/2.f,dummyCopy->height/2.f), -0.1f, ctx->white_texture, *dummyCopy2, ctx->white_texture, -1.0f); // sq for mask
+
+	ctx->unit_tri_cache.render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width/4.f,dummyCopy->height/4.f), 0.5f, ctx->purple_texture, *dummyCopy, ctx->white_texture);
+
+	ctx->unit_tri_cache.render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width,dummyCopy->height), 0.5f, ctx->purple_texture, *dummyCopy, *dummyCopy2);
+
 	ctx->unit_tri_cache.render(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyTexture->width,dummyTexture->height), 0.f, *dummyCopy, *dummyTexture, ctx->white_texture);
 }
 
@@ -166,6 +194,8 @@ void main_loop_iteration()
 				dummyTexture = new Texture(ctx, winWidth, winHeight, true);
 				delete dummyCopy;
 				dummyCopy = new Texture(ctx, winWidth, winHeight);
+				delete dummyCopy2;
+				dummyCopy2 = new Texture(ctx, winWidth, winHeight);
 
 //				dummyCopy.clear();
 //				for (int level = SSAA_LEVEL; level > 0; level /= 2)

@@ -26,8 +26,9 @@ Context::Context()
 	  white_texture(this, Color::WHITE()),
 	  clear_texture(this, Color::TRANSPARENT()),
 	  grey_texture(this, Color(100, 100, 100, 255)),
+	  purple_texture(this, Color::PURPLE()),
 	  unit_tri_cache(this, unit_tri_verts, 8, unit_tri_indices, 6, unit_tri_tex_coords),
-	  render_frame_num(0)
+	  render_frame_num(0), internal_msaa_level(8)
 {
 	vg_shader.use();
 	vg_shader.setInt("texture", 0);

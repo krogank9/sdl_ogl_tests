@@ -30,11 +30,16 @@ public:
 	const int height;
 	const bool is_dummy;
 
+	const bool is_multisampled;
+
 private:
 	void init(int width, int height, uint32_t* pixels);
+	void initMultiSampled(int width, int height);
 
 	GLuint framebuffer_id;
 	GLuint texture_id;
+	GLuint multisampled_framebuffer_id;
+	GLuint multisampled_texture_id;
 
 	uint64_t render_frame_num;
 

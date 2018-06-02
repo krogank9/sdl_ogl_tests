@@ -16,6 +16,13 @@ public:
 	static Color RED() { return Color(255, 0, 0, 255); }
 	static Color GREEN() { return Color(0, 255, 0, 255); }
 	static Color BLUE() { return Color(0, 0, 255, 255); }
+
+	static Color PINK() { return Color(255, 0, 255, 255); }
+	static Color YELLOW() { return Color(255, 255, 0, 255); }
+	static Color CYAN() { return Color(0, 255, 255, 255); }
+
+	static Color PURPLE() { return Color(128, 0, 128, 255); }
+
 	static Color BLACK() { return Color(0, 0, 0, 255); }
 	static Color WHITE() { return Color(255, 255, 255, 255); }
 	static Color TRANSPARENT() { return Color(0, 0, 0, 0); }
