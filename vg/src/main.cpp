@@ -101,7 +101,7 @@ void render(Context* ctx)
 	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), spin_rads, ctx->white_texture, ctx->white_texture, RenderNameList("dummyCopy2", Color(-1.f,-1.f,-1.f,-1.f))); // sq for mask
 
 	// bg
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), 0.f, ctx->white_texture, ctx->white_texture, "");
+	//ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), 0.f, ctx->white_texture, ctx->white_texture, "");
 
 	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f + (ctx->getViewportWidth()/2.f)*sin_slow, ctx->getViewportHeight()/2.f) - (ctx->getViewportHeight()/2.3f), vec2f(ctx->getViewportWidth()/4.f,ctx->getViewportHeight()/4.f), spin_rads_slow, ctx->grey_texture, ctx->white_texture, RenderNameList("", Color(1.f, 1.f, 1.f, 1.0f)));
 

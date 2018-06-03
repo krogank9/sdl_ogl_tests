@@ -43,27 +43,18 @@ void Texture::initMultiSampled(int width, int height)
 {
 	int max_samples = 0;
 	glGetIntegerv(GL_MAX_SAMPLES, &max_samples);
-	// texture
-	//glGenTextures(1, &multisampled_texture_id);
-	//glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, multisampled_texture_id);
 
 	glGenRenderbuffers(1, &multisampled_renderbuffer_id);
 	glBindRenderbuffer(GL_RENDERBUFFER, multisampled_renderbuffer_id);
 	glRenderbufferStorageMultisample(GL_RENDERBUFFER, min(ctx->msaa_level, max_samples), GL_RGBA8, width, height);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, width, height);
-
-	//glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, ctx->internal_msaa_level, GL_RGBA8, width, height, false);
-	//glTexImage2D(GL_TEXTURE_2D_MULTISAMPLE, 0/*mipmap level*/, GL_RGBA, width, height,
-			//	 0/*border*/, GL_RGBA, GL_UNSIGNED_BYTE, (void*)pixels);
 
 	// frame buffer for rendering to this texture
 	glGenFramebuffers(1, &multisampled_framebuffer_id);
 	glBindFramebuffer(GL_FRAMEBUFFER, multisampled_framebuffer_id);
 
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, multisampled_renderbuffer_id);
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, multisampled_texture_id, 0);
 
-	// make sure uninitialized texStorage is cleared.. screen is green if I don't do this
+	// make sure uninitialized renderbufferStorage is cleared..
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
