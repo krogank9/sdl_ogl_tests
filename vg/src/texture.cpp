@@ -107,8 +107,10 @@ void Texture::clear()
 	glViewport(0,0, width,height);
 	// bind multisample & regular fb and glClear()
 	if (is_multisampled)
+	{
 		glBindFramebuffer(GL_FRAMEBUFFER, multisampled_framebuffer_id);
-	glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_id);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -139,12 +141,6 @@ void Texture::bindToRenderTarget()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, is_multisampled? multisampled_framebuffer_id:framebuffer_id);
 	glViewport(0,0, width,height);
-
-	if (render_frame_num != ctx->getRenderFrame() && !is_cleared)
-	{
-		render_frame_num = ctx->getRenderFrame();
-		glClear(GL_COLOR_BUFFER_BIT);
-	}
 
 	is_cleared = false; // about to be rendered to, not guaranteed to be cleared
 }

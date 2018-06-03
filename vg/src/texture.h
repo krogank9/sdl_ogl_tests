@@ -43,8 +43,6 @@ private:
 	GLuint multisampled_framebuffer_id;
 	GLuint multisampled_renderbuffer_id;
 
-	uint64_t render_frame_num;
-
 	float scale_uv; // allow for supersampling
 
 	bool is_cleared;

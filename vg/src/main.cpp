@@ -85,7 +85,6 @@ void render(Context* ctx)
 	}
 
 	/////////// loop
-	glDepthMask(false);
 	ctx->clear();
 
 	float sin_slow = sin(SDL_GetTicks()/3000.f);
@@ -94,16 +93,21 @@ void render(Context* ctx)
 	//float spin_rads_fast = (sin(SDL_GetTicks()/6000.f) * M_PI*2) - M_PI;
 	float spin_rads_slow = (sin(SDL_GetTicks()/24000.f) * M_PI*2) - M_PI;
 
+	sin_slow = 0.5f;
+	spin_rads = 0.5f;
+	spin_rads_slow = 0.3f;
+
 	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), 0.f, ctx->white_texture, ctx->white_texture, "dummyCopy2"); // bg
 	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), spin_rads, ctx->white_texture, ctx->white_texture, RenderNameList("dummyCopy2", Color(-1.f,-1.f,-1.f,-1.f))); // sq for mask
 
-	//ctx->getUnitQuad().render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width,dummyCopy->height), 0.f, ctx->white_texture, ctx->white_texture, ""); // bg
+	// bg
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), 0.f, ctx->white_texture, ctx->white_texture, "");
 
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f + (ctx->getViewportWidth()/2.f)*sin_slow, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/4.f,ctx->getViewportHeight()/4.f), spin_rads_slow, ctx->grey_texture, ctx->white_texture, RenderNameList("dummyCopy", Color(1.f, 1.f, 1.f, 1.0f)));
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f + (ctx->getViewportWidth()/2.f)*sin_slow, ctx->getViewportHeight()/2.f) - (ctx->getViewportHeight()/2.3f), vec2f(ctx->getViewportWidth()/4.f,ctx->getViewportHeight()/4.f), spin_rads_slow, ctx->grey_texture, ctx->white_texture, RenderNameList("", Color(1.f, 1.f, 1.f, 1.0f)));
 
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), spin_rads_slow, ctx->purple_texture, ctx->getRenderTexture("dummyCopy2"), RenderNameList("dummyCopy", Color(1.f, 1.f, 1.f, 0.8f)));
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), spin_rads_slow, ctx->purple_texture, ctx->getRenderTexture("dummyCopy2"), RenderNameList("", Color(1.f, 1.f, 1.f, 1.f)));
 
-	ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("dummyCopy"), ctx->white_texture, "");
+	//ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("dummyCopy"), ctx->white_texture, "");
 	//ctx->unit_tri_cache.render(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyTexture->width,dummyTexture->height), 0.f, *dummyCopy, *dummyTexture, ctx->white_texture);
 
 	ctx->getRenderTexture("").blitToFramebuffer(0);
@@ -112,8 +116,6 @@ void render(Context* ctx)
 void main_loop_iteration(void* v_ctx)
 {
 	Context* ctx = (Context*)v_ctx;
-	render(ctx);
-	calc_FPS();
 
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -138,6 +140,9 @@ void main_loop_iteration(void* v_ctx)
 			break;
 		}
 	}
+
+	render(ctx);
+	calc_FPS();
 
 	SDL_GL_SwapWindow(window);//we have double bufferring by default, so make sure our changes get on the screen
 }
@@ -184,11 +189,13 @@ int main()
 	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE webgl_context = emscripten_webgl_create_context(0, &attrs);
 	emscripten_webgl_make_context_current(webgl_context);
 	Context ctx(winWidth, winHeight);
+	glDepthMask(false);
 	emscripten_set_main_loop_arg((em_arg_callback_func)main_loop_iteration, &ctx, 0, 1);
 #else
 	SDL_GLContext gl_context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, gl_context);
 	Context ctx(winWidth, winHeight);
+	glDepthMask(false);
 	while (true)
 		main_loop_iteration(&ctx);
 #endif

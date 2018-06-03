@@ -43,12 +43,15 @@ public:
 		for (; it != render_textures.end();)
 		{
 			std::pair<const std::string, Texture*>& p = *it;
-			bool texture_was_accessed = std::find(
+			bool texture_was_accessed = p.first == "" || std::find(
 						render_textures_accessed.begin(),
 						render_textures_accessed.end(),
 						p.first) != render_textures_accessed.end();
 			if (texture_was_accessed)
+			{
+				p.second->clear();
 				++it;
+			}
 			else
 				it = render_textures.erase(it);
 		}

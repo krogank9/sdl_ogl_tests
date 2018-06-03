@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <cmath>
 
+#include "utils.h"
+
 class Color
 {
 public:
@@ -36,7 +38,7 @@ public:
 	uint8_t a_u8() { return a*255; }
 
 	bool hasNegative() { return r < 0 || g < 0 ||b < 0 || a < 0; }
-	void makePositive() { r = abs(a); g = abs(b); b = abs(b); a = abs(a); }
+	void makePositive() { r = ABS(r); g = ABS(g); b = ABS(b); a = ABS(a); }
 
 	static Color RED() { return Color(255, 0, 0, 255); }
 	static Color GREEN() { return Color(0, 255, 0, 255); }
