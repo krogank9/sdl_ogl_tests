@@ -6,10 +6,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <SDL_opengles2.h>
+//#include <SDL_opengles2.h>
+#include <GLES3/gl3.h>
 #include "SDL.h"
-#include "shader.h"
-#include "img_load.h"
+#include "utils.h"
+
+#include "context.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -58,7 +60,7 @@ void initGL()
 
 	// make textures
 	int width, height;
-	unsigned char* texData = loadImg("tux.bmp", &width, &height);
+	unsigned char* texData = Utils::loadImg("tux.bmp", &width, &height);
 
 	glGenTextures(1, &texture1);
 	glBindTexture(GL_TEXTURE_2D, texture1);
@@ -71,7 +73,7 @@ void initGL()
 
 	free(texData);
 
-	texData = loadImg("awesomeface.bmp", &width, &height);
+	texData = Utils::loadImg("awesomeface.bmp", &width, &height);
 
 	glGenTextures(1, &texture2);
 	glBindTexture(GL_TEXTURE_2D, texture2);
@@ -96,6 +98,9 @@ void render()
 		inited = true;
 		initGL();
 	}
+
+	//Context ctx_test;
+
 	program.use();
 
 	/////////// loop

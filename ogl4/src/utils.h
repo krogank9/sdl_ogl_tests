@@ -1,15 +1,22 @@
-#ifndef SHADER_H
-#define SHADER_H
+#ifndef UTILS_H
+#define UTILS_H
 
-#include <GLES3/gl3.h>
-#include "SDL.h"
-#include "res_path.h"
+#include <stdint.h>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 
+#include <SDL.h>
+#include <GLES3/gl3.h>
 #include <glm/glm.hpp>
+
+class Utils
+{
+public:
+	static std::string getResourcePath(const std::string &subDir = "");
+	static unsigned char* loadImg(std::string name, int* width, int *height, std::string resFolder="images");
+};
 
 class Shader
 {
@@ -22,8 +29,8 @@ public:
 	Shader(std::string vertexFileName, std::string fragmentFileName)
 	{
 		// load files
-		std::string vertexPath = getResourcePath("shaders")+vertexFileName;
-		std::string fragmentPath = getResourcePath("shaders")+fragmentFileName;
+		std::string vertexPath = Utils::getResourcePath("shaders")+vertexFileName;
+		std::string fragmentPath = Utils::getResourcePath("shaders")+fragmentFileName;
 
 		std::string vertexCode;
 		std::string fragmentCode;
@@ -177,4 +184,4 @@ public:
 	}
 };
 
-#endif // SHADER_H
+#endif

@@ -1,7 +1,6 @@
-#version 310 es
+#version 300 es
 
 precision mediump float;
-precision mediump sampler2DMS;
 
 out vec4 FragColor;
 
@@ -14,9 +13,10 @@ uniform sampler2D mask_texture;
 uniform vec2 texture_size;
 uniform vec2 mask_texture_size;
 
-uniform float color_multiplier;
+uniform vec4 render_color_mask;
 
 void main(void) {
-    FragColor = texture2D(texture, tex_coord/texture_size) * texture2D(mask_texture, screen_pos/mask_texture_size) * color_multiplier;
-    //FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    vec4 mask_color = texture2D(mask_texture, screen_pos/mask_texture_size);
+    vec4 texture_color = texture2D(texture, tex_coord/texture_size) * render_color_mask;
+    FragColor = mask_color * texture_color;
 }

@@ -32,15 +32,15 @@ using namespace std;
 bool test_render_name_list()
 {
 	PRINT("creating mask\n");
-	DO(RenderNameList list("red", vec4f(1,0,0,0));)
-	DO(list.add("transparent", vec4f(0,0,0,0)));
-	DO(list.add("transparent", vec4f(0,0,0,0)));
-	DO(list.add("abc", vec4f(0,0,0,1)));
-	DO(list.add("transparent1", vec4f(0,0,0,0)));
-	DO(list.add("transparent2", vec4f(0,0,0,0)));
-	DO(list.add("abc1", vec4f(0,0,0,1)));
-	DO(list.add("abc2", vec4f(0,0,0,1)));
-	DO(list.add("abc3", vec4f(0,0,0,1)));
+	DO(RenderNameList list("red", Color(255,0,0,0));)
+	DO(list.add("transparent", Color(0,0,0,0)));
+	DO(list.add("transparent", Color(0,0,0,0)));
+	DO(list.add("abc", Color(0,0,0,255)));
+	DO(list.add("transparent1", Color(0,0,0,0)));
+	DO(list.add("transparent2", Color(0,0,0,0)));
+	DO(list.add("abc1", Color(0,0,0,255)));
+	DO(list.add("abc2", Color(0,0,0,255)));
+	DO(list.add("abc3", Color(0,0,0,255)));
 
 	PRINT(list.size());
 	ASSERT(list.size() == 8);
@@ -51,12 +51,12 @@ bool test_render_name_list()
 
 	PRINT("\ntesting validity\n");
 
-	vec4f last_mask = list.getColorMask(0);
-	vec4f cur_mask = list.getColorMask(0);
-	std::cout << "0: cur_mask(" << cur_mask.x() << "," << cur_mask.y()
-			  << "," << cur_mask.z() << "," << cur_mask.w() << ")" << std::endl;
+	Color last_mask = list.getColorMask(0);
+	Color cur_mask = list.getColorMask(0);
+	std::cout << "0: cur_mask(" << cur_mask.r << "," << cur_mask.g
+			  << "," << cur_mask.b << "," << cur_mask.a << ")" << std::endl;
 	// after sorted, 1 mask should not be seen twice when looping through neighbor groups.
-	std::vector<vec4f> seen_masks;
+	std::vector<Color> seen_masks;
 	seen_masks.push_back(last_mask);
 	for(unsigned int i=1; i<list.size(); i++)
 	{
@@ -67,8 +67,8 @@ bool test_render_name_list()
 						seen_masks.begin(),
 						seen_masks.end(),
 						list.getColorMask(i)) != seen_masks.end();
-			std::cout << i << ": cur_mask(" << cur_mask.x() << "," << cur_mask.y()
-					  << "," << cur_mask.z() << "," << cur_mask.w() << ")" << std::endl;
+			std::cout << i << ": cur_mask(" << cur_mask.r << "," << cur_mask.g
+					  << "," << cur_mask.b << "," << cur_mask.a << ")" << std::endl;
 			ASSERT(already_seen_mask == false);
 			seen_masks.push_back(list.getColorMask(i));
 		}

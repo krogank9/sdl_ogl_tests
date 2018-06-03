@@ -2,14 +2,17 @@
 #include <emscripten/emscripten.h>
 #endif
 
-#define RES_PATH_IMPLEMENTATION
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL.h>
-#include <GLES3/gl3.h>
 
-#include "img_load.h"
+#ifndef EMSCRIPTEN
+	#include <GLES3/gl32.h>
+#else
+	#include <GLES3/gl3.h>
+#endif
+
+#include "utils.h"
 #include "context.h"
 #include "tri_cache.h"
 #include "texture.h"
@@ -46,44 +49,33 @@ void calc_FPS()
 	}
 }
 
-class TexturePtr
+#ifndef EMSCRIPTEN
+void MessageCallback( GLenum source,
+				 GLenum type,
+				 GLuint id,
+				 GLenum severity,
+				 GLsizei length,
+				 const GLchar* message,
+				 const void* userParam )
 {
-public:
-	TexturePtr(const TexturePtr& copy) { counter = copy.counter; (*counter)++; ptr = copy.ptr; }
-	TexturePtr(Context* ctx, int width, int height) { ptr = new Texture(ctx, width, height); counter = new int(1); }
-	~TexturePtr() { if (*counter == 1) { delete ptr; delete counter; } else (*counter)--; }
-
-	Texture& deref() { return *ptr; }
-
-	Texture* ptr;
-	int* counter;
-};
+  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+		   ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+			type, severity, message );
+}
+#endif
 
 #define WIN_NAME "vg"
 #define SSAA_LEVEL 1
 
-Context* ctx;
-TriCache* testCache;
-Texture* dummyTexture;
-Texture* dummyCopy;
-Texture* dummyCopy2;
-//std::vector<TexturePtr> dummyList;
-
 void initGL()
 {
-	ctx = new Context(winWidth, winHeight, 8);
-
-	//delete dummyTexture;
-	dummyTexture = new Texture(ctx, winWidth, winHeight);
-
-	delete dummyCopy;
-	dummyCopy = new Texture(ctx, winWidth, winHeight);
-
-	delete dummyCopy2;
-	dummyCopy2 = new Texture(ctx, winWidth, winHeight);
+#ifndef EMSCRIPTEN
+	glEnable(GL_DEBUG_OUTPUT);
+	glDebugMessageCallback(MessageCallback, 0);
+#endif
 }
 
-void render()
+void render(Context* ctx)
 {
 	static bool inited = false;
 	if( !inited )
@@ -91,7 +83,8 @@ void render()
 		inited = true;
 		initGL();
 	}
-
+	return;
+/*
 	/////////// loop
 	glDepthMask(false);
 	ctx->clear();
@@ -102,22 +95,26 @@ void render()
 	//float spin_rads_fast = (sin(SDL_GetTicks()/6000.f) * M_PI*2) - M_PI;
 	float spin_rads_slow = (sin(SDL_GetTicks()/24000.f) * M_PI*2) - M_PI;
 
-	ctx->getUnitQuad().render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width,dummyCopy->height), 0.f, ctx->white_texture, *dummyCopy2, ctx->white_texture); // bg
-	ctx->getUnitQuad().render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width/2.f,dummyCopy->height/2.f), spin_rads, ctx->white_texture, *dummyCopy2, ctx->white_texture, -1.0f); // sq for mask
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), 0.f, ctx->white_texture, ctx->white_texture, "dummyCopy2"); // bg
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), spin_rads, ctx->white_texture, ctx->white_texture, RenderNameList("dummyCopy2", Color(-1.f,-1.f,-1.f,-1.f))); // sq for mask
 
-	ctx->getUnitQuad().render(vec2f(dummyCopy->width/2.f + (dummyCopy->width/2.f)*sin_slow, dummyCopy->height/2.f), vec2f(dummyCopy->width/4.f,dummyCopy->height/4.f), spin_rads_slow, ctx->grey_texture, *dummyCopy, ctx->white_texture);
+	//ctx->getUnitQuad().render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width,dummyCopy->height), 0.f, ctx->white_texture, ctx->white_texture, ""); // bg
 
-	ctx->getUnitQuad().render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width,dummyCopy->height), spin_rads_slow, ctx->purple_texture, *dummyCopy, *dummyCopy2);
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f + (ctx->getViewportWidth()/2.f)*sin_slow, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/4.f,ctx->getViewportHeight()/4.f), spin_rads_slow, ctx->grey_texture, ctx->white_texture, RenderNameList("dummyCopy", Color(1.f, 1.f, 1.f, 1.0f)));
 
-	ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, *dummyCopy, *dummyTexture, ctx->white_texture);
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), spin_rads_slow, ctx->purple_texture, ctx->getRenderTexture("dummyCopy2"), RenderNameList("dummyCopy", Color(1.f, 1.f, 1.f, 0.8f)));
+
+	ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("dummyCopy"), ctx->white_texture, "");
 	//ctx->unit_tri_cache.render(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyTexture->width,dummyTexture->height), 0.f, *dummyCopy, *dummyTexture, ctx->white_texture);
 
-	dummyTexture->blitToFramebuffer(0);
+	ctx->getRenderTexture("").blitToFramebuffer(0);
+	*/
 }
 
-void main_loop_iteration()
+void main_loop_iteration(void* v_ctx)
 {
-	render();
+	Context* ctx = (Context*)v_ctx;
+	render(ctx);
 	calc_FPS();
 
 	SDL_Event event;
@@ -136,13 +133,6 @@ void main_loop_iteration()
 				SDL_GetWindowSize(window, &winWidth, &winHeight);
 				std::cout << "resized" << std::endl;
 				ctx->updateViewportSize(winWidth, winHeight);
-				delete dummyTexture;
-				dummyTexture = new Texture(ctx, winWidth, winHeight);
-				delete dummyCopy;
-				dummyCopy = new Texture(ctx, winWidth, winHeight);
-				delete dummyCopy2;
-				dummyCopy2 = new Texture(ctx, winWidth, winHeight);
-
 				break;
 			case SDL_WINDOWEVENT_CLOSE:
 				std::cout << "closed" << std::endl;
@@ -192,11 +182,12 @@ int main()
 
 	SDL_GetWindowSize(window, &winWidth, &winHeight);
 
+	Context ctx(winWidth, winHeight);
 #ifdef EMSCRIPTEN
-	emscripten_set_main_loop((em_callback_func)main_loop_iteration, 0, 1);
+	emscripten_set_main_loop_arg((em_arg_callback_func)main_loop_iteration, &ctx, 0, 1);
 #else
 	while (true)
-		main_loop_iteration();
+		main_loop_iteration(&ctx);
 #endif
 
 	return 0;

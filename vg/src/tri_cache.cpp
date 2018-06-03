@@ -66,30 +66,14 @@ TriCache* TriCache::makeQuad(Context* ctx, vec2f size)
 // <Texture, intensity> pairs used for render & mask.
 // multiple render targets and masks. RenderDescr can cache multiple masks mixed
 void TriCache::render(vec2f pos, vec2f scale, float rotation,
-					  Texture& texture, Texture& target, Texture& mask,
-					  float blendMultiplier)
+					  Texture& texture, Texture& mask, RenderNameList targets)
 {	
 	ctx->getVgShader().use();
 
 	texture.bindToTexture();
 	mask.bindToMask();
-	target.bindToRenderTarget();
 	ctx->getVgShader().setVec2("texture_size", texture.width, texture.height);
 	ctx->getVgShader().setVec2("mask_texture_size", mask.width, mask.height);
-
-	// if blendMultiplier is negative, subtract from target texture
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	if (blendMultiplier < 0.0f)
-	{
-		blendMultiplier = -blendMultiplier;
-		glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
-	}
-	else
-	{
-		glBlendEquation(GL_FUNC_ADD);
-	}
-	ctx->getVgShader().setFloat("color_multiplier", blendMultiplier);
 
 	// bind verts
 	glBindBuffer(GL_ARRAY_BUFFER, gl_vert_buffer);
@@ -123,8 +107,8 @@ void TriCache::render(vec2f pos, vec2f scale, float rotation,
 
 	// scale, rotate, translate
 	// translate so center of screen is 0,0, then scale to -1.0 1.0f NDC (target w&h)
-	ndc_transform = glm::scale(ndc_transform, glm::vec3(2.f/target.width, 2.f/target.height, 1.0f)); //ndc
-	ndc_transform = glm::translate(ndc_transform, glm::vec3(target.width/-2.f, target.height/-2.f, 0.0f)); //ndc
+	ndc_transform = glm::scale(ndc_transform, glm::vec3(2.f/ctx->getViewportWidth(), 2.f/ctx->getViewportHeight(), 1.0f)); //ndc
+	ndc_transform = glm::translate(ndc_transform, glm::vec3(ctx->getViewportWidth()/-2.f, ctx->getViewportHeight()/-2.f, 0.0f)); //ndc
 
 	world_transform = glm::translate(world_transform, glm::vec3(pos.x, pos.y, 0.0f));
 	world_transform = glm::rotate(world_transform, rotation, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -134,8 +118,29 @@ void TriCache::render(vec2f pos, vec2f scale, float rotation,
 	glUniformMatrix4fv(ctx->getVgShader().getUniformLocation("world_transform"), 1, GL_FALSE, glm::value_ptr(world_transform));
 
 	// draw elements
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_indices_buffer);
-	glDrawElements(GL_TRIANGLES, indices_size, GL_UNSIGNED_INT, 0);
+	for (int i=0; i<targets.size(); ++i)
+	{
+		ctx->getRenderTexture(targets.getName(i)).bindToRenderTarget();
+		Color renderColorMask = targets.getColorMask(i);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		if (renderColorMask.hasNegative())
+		{
+			renderColorMask.makePositive();
+			glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+		}
+		else
+		{
+			glBlendEquation(GL_FUNC_ADD);
+		}
+
+		ctx->getVgShader().setVec4("render_color_mask", renderColorMask.r, renderColorMask.g, renderColorMask.b, renderColorMask.a);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_indices_buffer);
+		glDrawElements(GL_TRIANGLES, indices_size, GL_UNSIGNED_INT, 0);
+	}
 
 	// disable attrib arrays
 	glDisableVertexAttribArray(ctx->getVgShader().getAttribLocation("a_position"));

@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <SDL_opengles2.h>
+#include <GLES3/gl3.h>
 #include "SDL.h"
 #include "shader.h"
 #include "img_load.h"

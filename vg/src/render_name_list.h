@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <string>
 
-#include "vec4.h"
+#include "color.h"
 
 class RenderNameList
 {
@@ -20,7 +20,7 @@ public:
 		}
 	}
 
-	RenderNameList(std::string name="", vec4f color_mask=vec4f(1,1,1,1))
+	RenderNameList(std::string name="", Color color_mask=Color(1.f,1.f,1.f,1.f))
 		: is_sorted_(true)
 	{
 		names.push_back(name);
@@ -48,7 +48,7 @@ public:
 		is_sorted_ = true;
 	}
 
-	void add(const std::string& name, const vec4f& color_mask)
+	void add(const std::string& name, const Color& color_mask)
 	{
 		for (unsigned int i=0; i<names.size(); i++)
 		{
@@ -81,7 +81,7 @@ public:
 		return names[i];
 	}
 
-	vec4f getColorMask(int i) const
+	Color getColorMask(int i) const
 	{
 		return color_masks[i];
 	}
@@ -95,7 +95,7 @@ public:
 		if (is_sorted_)
 			return;
 
-		std::vector<vec4f> new_color_masks;
+		std::vector<Color> new_color_masks;
 		std::vector<std::string> new_names;
 
 		for (unsigned int i=0; i<color_masks.size(); i++)
@@ -129,7 +129,7 @@ public:
 private:
 	bool is_sorted_;
 	std::vector<std::string> names;
-	std::vector<vec4f> color_masks;
+	std::vector<Color> color_masks;
 };
 
 #endif // RENDER_NAME_LIST_H

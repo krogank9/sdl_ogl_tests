@@ -1,9 +1,11 @@
-attribute vec3 a_position;
-attribute vec3 a_color;
-attribute vec2 a_tex_coord;
+#version 300 es
 
-varying vec3 our_color;
-varying vec2 tex_coord;
+in vec3 a_position;
+in vec3 a_color;
+in vec2 a_tex_coord;
+
+out vec3 our_color;
+out vec2 tex_coord;
 
 uniform mat4 transform;
 

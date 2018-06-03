@@ -12,6 +12,15 @@ public:
 	Color(int r, int g, int b, int a=255) : r(r/255.f), g(g/255.f), b(b/255.f), a(a/255.f) {}
 	Color(float r, float g, float b, float a=1.0f) : r(r), g(g), b(b), a(a) {}
 
+	bool operator==(const Color& rhs) const
+	{
+		return r == rhs.r && g == rhs.g && b == rhs.b && a == rhs.a;
+	}
+	bool operator!=(const Color& rhs) const
+	{
+		return r != rhs.r || g != rhs.g || b != rhs.b || a != rhs.a;
+	}
+
 	uint32_t getRGBA()
 	{
 		return ((uint32_t)a_u8() << 24) + (b_u8() << 16) + ((uint32_t)g_u8() << 8) + ((uint32_t)r_u8());
@@ -26,8 +35,8 @@ public:
 	uint8_t b_u8() { return b*255; }
 	uint8_t a_u8() { return a*255; }
 
-	bool has_negative() { return r < 0 || g < 0 ||b < 0 || a < 0; }
-	void make_positive() { r = abs(a); g = abs(b); b = abs(b); a = abs(a); }
+	bool hasNegative() { return r < 0 || g < 0 ||b < 0 || a < 0; }
+	void makePositive() { r = abs(a); g = abs(b); b = abs(b); a = abs(a); }
 
 	static Color RED() { return Color(255, 0, 0, 255); }
 	static Color GREEN() { return Color(0, 255, 0, 255); }

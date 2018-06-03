@@ -4,6 +4,7 @@
 #include <GLES3/gl3.h>
 
 #include "color.h"
+#include "render_name_list.h"
 
 #define MAKE_PO2(x) (x<2?1: x<4?2: x<8?4:\
 					x<16?8: x<32?16: x<64?32:\
@@ -16,6 +17,7 @@ class Context;
 class Texture
 {
 public:
+	Texture() :width(0), height(0), is_multisampled(false) {}
 	Texture(Context* ctx, int width, int height);
 	Texture(Context* ctx, Color solidColor);
 
