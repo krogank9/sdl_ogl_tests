@@ -61,8 +61,8 @@ public:
 	{
 		viewport_width = width;
 		viewport_height = height;
-		//delete screen_quad;
-		//screen_quad = TriCache::makeQuad(this, viewport_width, viewport_height);
+		delete screen_quad;
+		screen_quad = TriCache::makeQuad(this, viewport_width, viewport_height);
 	}
 	int getViewportWidth() { return viewport_width; }
 	int getViewportHeight() { return viewport_height; }

@@ -1,5 +1,6 @@
 #ifdef EMSCRIPTEN
 #include <emscripten/emscripten.h>
+#include <emscripten/html5.h>
 #endif
 
 #define RES_PATH_IMPLEMENTATION
@@ -19,6 +20,7 @@
 
 int winWidth, winHeight;
 SDL_Window* window;
+SDL_GLContext context;
 
 Shader program;
 GLuint vertexbuffer;
@@ -208,8 +210,6 @@ void main_loop_iteration()
 
 int main()
 {
-	SDL_GLContext context;
-
 	int flags = SDL_INIT_EVERYTHING & ~(SDL_INIT_TIMER | SDL_INIT_HAPTIC);//only SDL_INIT_EVERYTHING may suffice
 	if (SDL_Init(flags) < 0)//if it doesn't work, try and log a helpful error
 	{
@@ -219,7 +219,7 @@ int main()
 	//better safe than sorry vv
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 
@@ -227,7 +227,7 @@ int main()
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
 	window = SDL_CreateWindow("Example", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 800,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);//only SDL_WINDOW_OPENGL may suffice
+		SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);//only SDL_WINDOW_OPENGL may suffice
 	if (!window)//if it doesn't work, lower the bar
 	{
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
@@ -240,14 +240,21 @@ int main()
 			return 1;
 		}
 	}
-	context = SDL_GL_CreateContext(window);
-	SDL_GL_MakeCurrent(window, context);
 
 	SDL_GetWindowSize(window, &winWidth, &winHeight);
 
 #ifdef EMSCRIPTEN
+	EmscriptenWebGLContextAttributes attrs;
+	attrs.antialias = false;
+	attrs.majorVersion = 2;
+	attrs.minorVersion = 0;
+	attrs.alpha = false;
+	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE webgl_context = emscripten_webgl_create_context(0, &attrs);
+	emscripten_webgl_make_context_current(webgl_context);
 	emscripten_set_main_loop((em_callback_func)main_loop_iteration, 0, 1);
 #else
+	SDL_GLContext gl_context = SDL_GL_CreateContext(window);
+	SDL_GL_MakeCurrent(window, gl_context);
 	while (true)
 		main_loop_iteration();
 #endif

@@ -17,7 +17,6 @@ class Context;
 class Texture
 {
 public:
-	Texture() :width(0), height(0), is_multisampled(false) {}
 	Texture(Context* ctx, int width, int height);
 	Texture(Context* ctx, Color solidColor);
 

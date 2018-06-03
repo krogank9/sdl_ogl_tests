@@ -1,5 +1,6 @@
 #ifdef EMSCRIPTEN
-#include <emscripten/emscripten.h>
+	#include <emscripten/emscripten.h>
+	#include <emscripten/html5.h>
 #endif
 
 #include <stdio.h>
@@ -50,13 +51,13 @@ void calc_FPS()
 }
 
 #ifndef EMSCRIPTEN
-void MessageCallback( GLenum source,
+void MessageCallback( GLenum ,//source,
 				 GLenum type,
-				 GLuint id,
+				 GLuint ,//id,
 				 GLenum severity,
-				 GLsizei length,
+				 GLsizei ,//length,
 				 const GLchar* message,
-				 const void* userParam )
+				 const void* )//userParam )
 {
   fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
 		   ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
@@ -65,7 +66,6 @@ void MessageCallback( GLenum source,
 #endif
 
 #define WIN_NAME "vg"
-#define SSAA_LEVEL 1
 
 void initGL()
 {
@@ -83,8 +83,7 @@ void render(Context* ctx)
 		inited = true;
 		initGL();
 	}
-	return;
-/*
+
 	/////////// loop
 	glDepthMask(false);
 	ctx->clear();
@@ -108,7 +107,6 @@ void render(Context* ctx)
 	//ctx->unit_tri_cache.render(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyTexture->width,dummyTexture->height), 0.f, *dummyCopy, *dummyTexture, ctx->white_texture);
 
 	ctx->getRenderTexture("").blitToFramebuffer(0);
-	*/
 }
 
 void main_loop_iteration(void* v_ctx)
@@ -146,8 +144,6 @@ void main_loop_iteration(void* v_ctx)
 
 int main()
 {
-	SDL_GLContext context;
-
 	int flags = SDL_INIT_EVERYTHING & ~(SDL_INIT_TIMER | SDL_INIT_HAPTIC);//only SDL_INIT_EVERYTHING may suffice
 	if (SDL_Init(flags) < 0)//if it doesn't work, try and log a helpful error
 	{
@@ -177,15 +173,22 @@ int main()
 			return 1;
 		}
 	}
-	context = SDL_GL_CreateContext(window);
-	SDL_GL_MakeCurrent(window, context);
 
 	SDL_GetWindowSize(window, &winWidth, &winHeight);
-
-	Context ctx(winWidth, winHeight);
 #ifdef EMSCRIPTEN
+	EmscriptenWebGLContextAttributes attrs;
+	attrs.antialias = false;
+	attrs.majorVersion = 2;
+	attrs.minorVersion = 0;
+	attrs.alpha = false;
+	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE webgl_context = emscripten_webgl_create_context(0, &attrs);
+	emscripten_webgl_make_context_current(webgl_context);
+	Context ctx(winWidth, winHeight);
 	emscripten_set_main_loop_arg((em_arg_callback_func)main_loop_iteration, &ctx, 0, 1);
 #else
+	SDL_GLContext gl_context = SDL_GL_CreateContext(window);
+	SDL_GL_MakeCurrent(window, gl_context);
+	Context ctx(winWidth, winHeight);
 	while (true)
 		main_loop_iteration(&ctx);
 #endif

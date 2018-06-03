@@ -6,12 +6,12 @@ int Context::num_ctx;
 
 Context::Context(int viewport_width, int viewport_height, int msaa_level)
 	: msaa_level(msaa_level),
-	  viewport_width(viewport_width), viewport_height(viewport_height)
-	  //white_texture(this, Color::WHITE()),
-	  //clear_texture(this, Color::TRANSPARENT()),
-	  //grey_texture(this, Color(100, 100, 100, 255)),
-	  //black_texture(this, Color::BLACK()),
-	  //purple_texture(this, Color::PURPLE())
+	  viewport_width(viewport_width), viewport_height(viewport_height),
+	  white_texture(this, Color::WHITE()),
+	  clear_texture(this, Color::TRANSPARENT()),
+	  grey_texture(this, Color(100, 100, 100, 255)),
+	  black_texture(this, Color::BLACK()),
+	  purple_texture(this, Color::PURPLE())
 {
 
 	if (num_ctx == 0)
@@ -23,8 +23,8 @@ Context::Context(int viewport_width, int viewport_height, int msaa_level)
 	}
 	num_ctx++;
 
-	//unit_quad = TriCache::makeQuad(this, 1, 1);
-	//screen_quad = TriCache::makeQuad(this, viewport_width, viewport_height);
+	unit_quad = TriCache::makeQuad(this, 1, 1);
+	screen_quad = TriCache::makeQuad(this, viewport_width, viewport_height);
 }
 
 Context::~Context()

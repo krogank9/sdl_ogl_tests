@@ -28,7 +28,7 @@ file(GLOB shaders_SRC
 )
 
 add_executable(vg "src/main.cpp" ${nanovg_SRC} ${shaders_SRC})
-add_executable(vg_tests "src/main_tests.cpp" ${shaders_SRC})
+add_executable(vg_tests "src/main_tests.cpp")
 if (NOT EMSCRIPTEN)
     target_link_libraries(vg ${SDL2_LIBRARY} ${OPENGLES3_LIBRARY})
     target_link_libraries(vg_tests ${SDL2_LIBRARY} ${OPENGLES3_LIBRARY})

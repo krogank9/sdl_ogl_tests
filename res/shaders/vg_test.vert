@@ -1,10 +1,8 @@
-#version 300 es
+attribute vec2 a_position;
+attribute vec2 a_tex_coord;
 
-in vec2 a_position;
-in vec2 a_tex_coord;
-
-out vec2 tex_coord;
-out vec2 screen_pos;
+varying vec2 tex_coord;
+varying vec2 screen_pos;
 
 uniform mat4 world_transform; // pixel coordinate scale/rotate/translate
 uniform mat4 ndc_transform; // normalize to NDC
