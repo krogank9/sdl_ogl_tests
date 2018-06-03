@@ -1,7 +1,9 @@
 #ifndef TRI_CACHE_H
 #define TRI_CACHE_H
 
-#include <GLES3/gl31.h>
+#include <iostream>
+
+#include <GLES3/gl3.h>
 
 #include "vec2.h"
 #include "vec4.h"
@@ -21,11 +23,14 @@ public:
 	~TriCache();
 
 	void render(vec2f pos, vec2f scale, float rotation,
-				const Texture& texture, Texture& target, const Texture& mask,
-				float blendMultiplier=1.0f) const;
+				Texture& texture, Texture& target, Texture& mask,
+				float blendMultiplier=1.0f);
 
-	void renderFinal(vec2f pos, vec2f scale,
-				const Texture& texture, Texture& target) const;
+	static TriCache* makeQuad(Context* ctx, vec2f size);
+	static TriCache* makeQuad(Context* ctx, int width, int height)
+	{
+		return makeQuad(ctx, vec2f(width, height));
+	}
 
 private:
 	Context* ctx;

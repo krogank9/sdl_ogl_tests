@@ -2,21 +2,16 @@
 
 #include "context.h"
 
-Texture::Texture(Context* ctx, int width, int height, bool is_dummy)
-	: ctx(ctx), width(width), height(height), is_dummy(is_dummy), is_multisampled(!is_dummy)
+Texture::Texture(Context* ctx, int width, int height)
+	: ctx(ctx), width(width), height(height), is_multisampled(ctx->msaa_level > 0), is_cleared(false)
 {
-	// dummy texture for rendering to screen
-	if (is_dummy)
-		framebuffer_id = 0;
-	else
-	{
-		init(width, height, 0);
+	init(width, height, 0);
+	if (ctx->msaa_level > 0)
 		initMultiSampled(width, height);
-	}
 }
 
 Texture::Texture(Context* ctx, Color solidColor)
-	: ctx(ctx), width(1), height(1), is_dummy(false), is_multisampled(false)
+	: ctx(ctx), width(1), height(1), is_multisampled(false), is_cleared(false)
 {
 	uint32_t colorByte = solidColor.getRGBA();
 	init(1, 1, &colorByte);
@@ -29,11 +24,8 @@ void Texture::init(int width, int height, uint32_t* pixels)
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 
 	// this works:
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,
-	//			 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	// this does not work, even though wiki says they are equivalent. I'm using GLES3.
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,
+				 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -49,18 +41,27 @@ void Texture::init(int width, int height, uint32_t* pixels)
 
 void Texture::initMultiSampled(int width, int height)
 {
+	int max_samples = 0;
+	glGetIntegerv(GL_MAX_SAMPLES, &max_samples);
 	// texture
-	glGenTextures(1, &multisampled_texture_id);
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, multisampled_texture_id);
+	//glGenTextures(1, &multisampled_texture_id);
+	//glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, multisampled_texture_id);
 
-	glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, ctx->internal_msaa_level, GL_RGBA8, width, height, false);
+	glGenRenderbuffers(1, &multisampled_renderbuffer_id);
+	glBindRenderbuffer(GL_RENDERBUFFER, multisampled_renderbuffer_id);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, min(ctx->msaa_level, max_samples), GL_RGBA8, width, height);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, width, height);
+
+	//glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, ctx->internal_msaa_level, GL_RGBA8, width, height, false);
 	//glTexImage2D(GL_TEXTURE_2D_MULTISAMPLE, 0/*mipmap level*/, GL_RGBA, width, height,
 			//	 0/*border*/, GL_RGBA, GL_UNSIGNED_BYTE, (void*)pixels);
 
 	// frame buffer for rendering to this texture
 	glGenFramebuffers(1, &multisampled_framebuffer_id);
 	glBindFramebuffer(GL_FRAMEBUFFER, multisampled_framebuffer_id);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, multisampled_texture_id, 0);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, multisampled_renderbuffer_id);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, multisampled_texture_id, 0);
 
 	// make sure uninitialized texStorage is cleared.. screen is green if I don't do this
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -68,48 +69,68 @@ void Texture::initMultiSampled(int width, int height)
 
 Texture::~Texture()
 {
-	if (!is_dummy)
-	{
-		glDeleteTextures(1, &texture_id);
-		glDeleteFramebuffers(1, &framebuffer_id);
-
-		if (is_multisampled)
-		{
-			glDeleteTextures(1, &multisampled_texture_id);
-			glDeleteFramebuffers(1, &multisampled_framebuffer_id);
-		}
-	}
-}
-
-void Texture::bindToMask() const
-{
-	if (is_dummy)
-		return;
+	glDeleteTextures(1, &texture_id);
+	glDeleteFramebuffers(1, &framebuffer_id);
 
 	if (is_multisampled)
 	{
-		// blit multisampled fbo to regular fbo
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_id);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, multisampled_framebuffer_id);
-		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		glDeleteRenderbuffers(1, &multisampled_renderbuffer_id);
+		//glDeleteTextures(1, &multisampled_texture_id);
+		glDeleteFramebuffers(1, &multisampled_framebuffer_id);
 	}
+}
+
+void Texture::blitToFramebuffer(GLuint id)
+{
+	if (id != framebuffer_id)
+	{
+		blitToFramebuffer(framebuffer_id);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer_id);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, id);
+	}
+	else if (is_multisampled)
+	{
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, multisampled_framebuffer_id);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, id);
+	}
+	glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+}
+
+void Texture::clear()
+{
+	if (is_cleared)
+		return;
+
+	//GLint save_bound_framebuffer = 0;
+	//glGetIntegerv(GL_FRAMEBUFFER_BINDING, &save_bound_framebuffer);
+
+	glViewport(0,0, width,height);
+	// bind multisample & regular fb and glClear()
+	if (is_multisampled)
+		glBindFramebuffer(GL_FRAMEBUFFER, multisampled_framebuffer_id);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_id);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	//glBindFramebuffer(GL_FRAMEBUFFER, save_bound_framebuffer);
+
+	is_cleared = true;
+}
+
+void Texture::bindToMask()
+{
+	if (is_multisampled)
+		blitToFramebuffer(framebuffer_id);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 }
 
-void Texture::bindToTexture() const
+void Texture::bindToTexture()
 {
-	if (is_dummy)
-		return;
-
 	if (is_multisampled)
-	{
-		// blit multisampled fbo to regular fbo
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_id);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, multisampled_framebuffer_id);
-		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	}
+		blitToFramebuffer(framebuffer_id);
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 }
@@ -119,9 +140,11 @@ void Texture::bindToRenderTarget()
 	glBindFramebuffer(GL_FRAMEBUFFER, is_multisampled? multisampled_framebuffer_id:framebuffer_id);
 	glViewport(0,0, width,height);
 
-	if (render_frame_num != ctx->getRenderFrame())
+	if (render_frame_num != ctx->getRenderFrame() && !is_cleared)
 	{
 		render_frame_num = ctx->getRenderFrame();
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
+
+	is_cleared = false; // about to be rendered to, not guaranteed to be cleared
 }

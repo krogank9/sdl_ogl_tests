@@ -7,12 +7,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL.h>
-#include <GLES3/gl31.h>
+#include <GLES3/gl3.h>
 
 #include "img_load.h"
 #include "context.h"
 #include "tri_cache.h"
 #include "texture.h"
+#include "render_name_list.h"
 
 int winWidth, winHeight;
 SDL_Window* window;
@@ -36,7 +37,7 @@ void calc_FPS()
 	if (now-last_print_time > 1000 && all_calcs.size() > 0)
 	{
 		Uint32 avg_frame_time = 0;
-		for (int i=0; i<all_calcs.size(); i++)
+		for (unsigned int i=0; i<all_calcs.size(); i++)
 			avg_frame_time += all_calcs[i];
 		float FPS = 1000.f/(avg_frame_time / all_calcs.size());
 
@@ -58,8 +59,7 @@ public:
 	int* counter;
 };
 
-#define NUM_COPIES 3
-#define WIN_NAME "fx"
+#define WIN_NAME "vg"
 #define SSAA_LEVEL 1
 
 Context* ctx;
@@ -68,73 +68,22 @@ Texture* dummyTexture;
 Texture* dummyCopy;
 Texture* dummyCopy2;
 //std::vector<TexturePtr> dummyList;
-Texture* redTexture;
-Texture* blueTexture;
-Texture* greenTexture;
-
-GLuint vertexbuffer;
-GLuint indicesbuffer;
-GLuint texture1;
-GLuint texture2;
-
-// An array of 3 vectors which represents 3 vertices
-static GLfloat g_vertex_buffer_data[] = {
-	//-1.0f, 1.0f // left top
-	//1.0f, 1.0f, // right top
-	//1.0f,  -1.0f // right bot
-	// positions			// colors			// texture coords
-	-250.0f, -250.0f, // left top
-	250.0f, -250.0f, // right top
-	250.0f,  250.0f, // right bot
-	-250.0f, 250.0f, // left bot
-};
-
-static GLuint g_vertex_indices[] = {
-	0, 1, 2, // first triangle
-	0, 2, 3 // second triangle
-};
-
-void MessageCallback( GLenum source,
-				 GLenum type,
-				 GLuint id,
-				 GLenum severity,
-				 GLsizei length,
-				 const GLchar* message,
-				 const void* userParam )
-{
-  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-		   ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
-			type, severity, message );
-}
-
 
 void initGL()
 {
-	ctx = new Context();
+	ctx = new Context(winWidth, winHeight, 8);
 
 	//delete dummyTexture;
-	dummyTexture = new Texture(ctx, winWidth, winHeight, true);
+	dummyTexture = new Texture(ctx, winWidth, winHeight);
 
 	delete dummyCopy;
 	dummyCopy = new Texture(ctx, winWidth, winHeight);
 
 	delete dummyCopy2;
 	dummyCopy2 = new Texture(ctx, winWidth, winHeight);
-//	dummyCopy.clear();
-//	for (int level = SSAA_LEVEL; level > 0; level /= 2)
-//		dummyCopy.push_back(TexturePtr(ctx, winWidth*level, winHeight*level));
-
-	redTexture = new Texture(ctx, Color(255, 0, 0, 255));
-	blueTexture = new Texture(ctx, Color(0,0,255,255));
-	greenTexture = new Texture(ctx, Color::GREEN());
-
-	testCache = new TriCache(ctx, g_vertex_buffer_data, 8, g_vertex_indices, 6);
-
-	glEnable(GL_DEBUG_OUTPUT);
-	glDebugMessageCallback(MessageCallback, 0);
 }
 
-void render(int width, int height)
+void render()
 {
 	static bool inited = false;
 	if( !inited )
@@ -147,32 +96,28 @@ void render(int width, int height)
 	glDepthMask(false);
 	ctx->clear();
 
-/*
-	//ctx->unit_tri_cache.render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width,dummyCopy->height), 0.f, ctx->grey_texture, *dummyCopy, ctx->white_texture);
-	bool every_other_sec = (SDL_GetTicks()%5000) < 2500;
-	ctx->unit_tri_cache.render(vec2f(dummyCopy[0].ptr->width/2.f, dummyCopy[0].ptr->height/2.f), vec2f(dummyCopy[0].ptr->width,dummyCopy[0].ptr->height), 0.f, every_other_sec?ctx->white_texture:ctx->clear_texture, dummyCopy[0].deref(), ctx->white_texture);
-	ctx->unit_tri_cache.render(vec2f(dummyCopy[0].ptr->width/2.f, dummyCopy[0].ptr->height/2.f), vec2f(dummyCopy[0].ptr->width,dummyCopy[0].ptr->height), 0.5f, ctx->grey_texture, dummyCopy[0].deref(), ctx->white_texture);
-	for (int i=1; i<dummyCopy.size(); i++)
-	{
-		ctx->unit_tri_cache.render(vec2f(dummyCopy[i].ptr->width/2.f, dummyCopy[i].ptr->height/2.f), vec2f(dummyCopy[i].ptr->width,dummyCopy[i].ptr->height), glm::radians(0.f), dummyCopy[i-1].deref(), dummyCopy[i].deref(), ctx->white_texture);
-	}
-	//ctx->unit_tri_cache.render(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyTexture->width,dummyTexture->height), glm::radians(0.f), dummyCopy.back().deref(), *dummyTexture, ctx->white_texture);
-	ctx->unit_tri_cache.renderFinal(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyTexture->width, dummyTexture->height), dummyCopy.back().deref(), *dummyTexture);
-*/
+	float sin_slow = sin(SDL_GetTicks()/3000.f);
 
-	ctx->unit_tri_cache.render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width,dummyCopy->height), 0.f, ctx->white_texture, *dummyCopy2, ctx->white_texture); // bg
-	ctx->unit_tri_cache.render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width/2.f,dummyCopy->height/2.f), -0.1f, ctx->white_texture, *dummyCopy2, ctx->white_texture, -1.0f); // sq for mask
+	float spin_rads = (sin(SDL_GetTicks()/12000.f) * M_PI*2) - M_PI;
+	//float spin_rads_fast = (sin(SDL_GetTicks()/6000.f) * M_PI*2) - M_PI;
+	float spin_rads_slow = (sin(SDL_GetTicks()/24000.f) * M_PI*2) - M_PI;
 
-	ctx->unit_tri_cache.render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width/4.f,dummyCopy->height/4.f), 0.5f, ctx->purple_texture, *dummyCopy, ctx->white_texture);
+	ctx->getUnitQuad().render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width,dummyCopy->height), 0.f, ctx->white_texture, *dummyCopy2, ctx->white_texture); // bg
+	ctx->getUnitQuad().render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width/2.f,dummyCopy->height/2.f), spin_rads, ctx->white_texture, *dummyCopy2, ctx->white_texture, -1.0f); // sq for mask
 
-	ctx->unit_tri_cache.render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width,dummyCopy->height), 0.5f, ctx->purple_texture, *dummyCopy, *dummyCopy2);
+	ctx->getUnitQuad().render(vec2f(dummyCopy->width/2.f + (dummyCopy->width/2.f)*sin_slow, dummyCopy->height/2.f), vec2f(dummyCopy->width/4.f,dummyCopy->height/4.f), spin_rads_slow, ctx->grey_texture, *dummyCopy, ctx->white_texture);
 
-	ctx->unit_tri_cache.render(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyTexture->width,dummyTexture->height), 0.f, *dummyCopy, *dummyTexture, ctx->white_texture);
+	ctx->getUnitQuad().render(vec2f(dummyCopy->width/2.f, dummyCopy->height/2.f), vec2f(dummyCopy->width,dummyCopy->height), spin_rads_slow, ctx->purple_texture, *dummyCopy, *dummyCopy2);
+
+	ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, *dummyCopy, *dummyTexture, ctx->white_texture);
+	//ctx->unit_tri_cache.render(vec2f(dummyTexture->width/2.f, dummyTexture->height/2.f), vec2f(dummyTexture->width,dummyTexture->height), 0.f, *dummyCopy, *dummyTexture, ctx->white_texture);
+
+	dummyTexture->blitToFramebuffer(0);
 }
 
 void main_loop_iteration()
 {
-	render(winWidth, winHeight);
+	render();
 	calc_FPS();
 
 	SDL_Event event;
@@ -190,16 +135,13 @@ void main_loop_iteration()
 			case SDL_WINDOWEVENT_SIZE_CHANGED:
 				SDL_GetWindowSize(window, &winWidth, &winHeight);
 				std::cout << "resized" << std::endl;
+				ctx->updateViewportSize(winWidth, winHeight);
 				delete dummyTexture;
-				dummyTexture = new Texture(ctx, winWidth, winHeight, true);
+				dummyTexture = new Texture(ctx, winWidth, winHeight);
 				delete dummyCopy;
 				dummyCopy = new Texture(ctx, winWidth, winHeight);
 				delete dummyCopy2;
 				dummyCopy2 = new Texture(ctx, winWidth, winHeight);
-
-//				dummyCopy.clear();
-//				for (int level = SSAA_LEVEL; level > 0; level /= 2)
-//					dummyCopy.push_back(TexturePtr(ctx, winWidth*level, winHeight*level));
 
 				break;
 			case SDL_WINDOWEVENT_CLOSE:
@@ -229,8 +171,8 @@ int main()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 	window = SDL_CreateWindow(WIN_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 800,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);//only SDL_WINDOW_OPENGL may suffice
 	if (!window)//if it doesn't work, lower the bar
@@ -248,13 +190,7 @@ int main()
 	context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, context);
 
-	int fbWidth, fbHeight;
-	float pxRatio;
-
 	SDL_GetWindowSize(window, &winWidth, &winHeight);
-	fbWidth=winWidth; fbHeight=winHeight;
-
-	pxRatio = (float)fbWidth / (float)winWidth;
 
 #ifdef EMSCRIPTEN
 	emscripten_set_main_loop((em_callback_func)main_loop_iteration, 0, 1);

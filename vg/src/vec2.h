@@ -12,6 +12,10 @@ public:
 	vec2(T x, T y) : x(x), y(y) {}
 	vec2(const vec2& v) : x(v.x), y(v.y) {}
 
+	bool operator==(const vec2& v) {
+		return x == v.x && y == v.y;
+	}
+
 	vec2& operator=(const vec2& v) {
 		x = v.x;
 		y = v.y;

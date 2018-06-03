@@ -17,6 +17,6 @@ uniform vec2 mask_texture_size;
 uniform float color_multiplier;
 
 void main(void) {
-    FragColor = texture2D(texture, tex_coord) * texture2D(mask_texture, screen_pos/mask_texture_size) * color_multiplier;
+    FragColor = texture2D(texture, tex_coord/texture_size) * texture2D(mask_texture, screen_pos/mask_texture_size) * color_multiplier;
     //FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }

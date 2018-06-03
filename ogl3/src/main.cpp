@@ -88,7 +88,7 @@ void initGL()
 	free(texData);
 }
 
-void render(int width, int height)
+void render()
 {
 	static bool inited = false;
 	if( !inited )
@@ -197,7 +197,7 @@ void main_loop_iteration()
 
 	glClear( GL_COLOR_BUFFER_BIT );
 
-	render(winWidth, winHeight);
+	render();
 
 	SDL_GL_SwapWindow(window);//we have double bufferring by default, so make sure our changes get on the screen
 }
@@ -239,13 +239,7 @@ int main()
 	context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, context);
 
-	int fbWidth, fbHeight;
-	float pxRatio;
-
 	SDL_GetWindowSize(window, &winWidth, &winHeight);
-	fbWidth=winWidth; fbHeight=winHeight;
-
-	pxRatio = (float)fbWidth / (float)winWidth;
 
 #ifdef EMSCRIPTEN
 	emscripten_set_main_loop((em_callback_func)main_loop_iteration, 0, 1);

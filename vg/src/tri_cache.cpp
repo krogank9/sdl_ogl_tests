@@ -37,74 +37,37 @@ TriCache::~TriCache()
 {
 }
 
-// render with FXAA for rendering to screen
-void TriCache::renderFinal(vec2f pos, vec2f scale,
-			const Texture& texture, Texture& target) const
+TriCache* TriCache::makeQuad(Context* ctx, vec2f size)
 {
-/*
-	ctx->getFxaaShader().use();
+	// for unit sq tri cache
+	GLfloat quad_verts[] = {
+		-size.x/2.f, -size.y/2.f, // left top
+		size.x/2.f, -size.y/2.f, // right top
+		size.x/2.f, size.y/2.f, // right bot
+		-size.x/2.f, size.y/2.f, // left bot
+	};
 
-	texture.bindToTexture();
-	target.bindToRenderTarget();
+	GLfloat quad_tex_coords[] = {
+		0.f, 0.f, // left top
+		size.x, 0.f, // right top
+		size.x, size.y, // right bot
+		0.f, size.y, // left bot
+	};
 
-	ctx->getFxaaShader().setVec2("render_texture_size", texture.width, texture.height);
+	const GLuint quad_indices[] = {
+		0, 1, 2, // first triangle
+		0, 2, 3 // second triangle
+	};
 
-	// bind verts
-	glBindBuffer(GL_ARRAY_BUFFER, gl_vert_buffer);
-	glVertexAttribPointer(
-	   ctx->getFxaaShader().getAttribLocation("a_position"), // attribute to set
-	   2,			// size
-	   GL_FLOAT,	// type
-	   GL_FALSE,	// normalized?
-	   0,			// stride
-	   (void*)0		// array buffer offset
-	);
-	glEnableVertexAttribArray(ctx->getFxaaShader().getAttribLocation("a_position"));
-	// bind texture coords
-	if (has_texture_coords)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, gl_tex_coords_buffer);
-		glVertexAttribPointer(
-		   ctx->getFxaaShader().getAttribLocation("a_tex_coord"), // attribute to set
-		   2,			// size
-		   GL_FLOAT,	// type
-		   GL_FALSE,	// normalized?
-		   0,			// stride
-		   (void*)0		// array buffer offset
-		);
-		glEnableVertexAttribArray(ctx->getFxaaShader().getAttribLocation("a_tex_coord"));
-	}
-
-	// set "transform" uniform mat4
-	glm::mat4 transform(1.0f);
-
-	// scale, rotate, translate
-	// translate so center of screen is 0,0, then scale to -1.0 1.0f NDC (target w&h)
-	transform = glm::scale(transform, glm::vec3(2.f/target.width, -2.f/target.height, 1.0f)); //ndc
-	transform = glm::translate(transform, glm::vec3(target.width/-2.f, target.height/-2.f, 0.0f)); //ndc
-
-	transform = glm::translate(transform, glm::vec3(pos.x, pos.y, 0.0f));
-	transform = glm::scale(transform, glm::vec3(scale.x, scale.y, 1.0f));
-
-	glUniformMatrix4fv(ctx->getFxaaShader().getUniformLocation("transform"), 1, GL_FALSE, glm::value_ptr(transform));
-
-	// draw elements
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_indices_buffer);
-	glDrawElements(GL_TRIANGLES, indices_size, GL_UNSIGNED_INT, 0);
-
-	// disable attrib arrays
-	glDisableVertexAttribArray(ctx->getFxaaShader().getAttribLocation("a_position"));
-	if (has_texture_coords)
-		glDisableVertexAttribArray(ctx->getFxaaShader().getAttribLocation("a_tex_coord"));
-*/
+	return new TriCache(ctx, quad_verts, 8, quad_indices, 6, quad_tex_coords);
 }
 
 // blendMultiplier so later we can add RenderDescr class:
 // <Texture, intensity> pairs used for render & mask.
 // multiple render targets and masks. RenderDescr can cache multiple masks mixed
 void TriCache::render(vec2f pos, vec2f scale, float rotation,
-					  const Texture& texture, Texture& target, const Texture& mask,
-					  float blendMultiplier) const
+					  Texture& texture, Texture& target, Texture& mask,
+					  float blendMultiplier)
 {	
 	ctx->getVgShader().use();
 
@@ -116,7 +79,7 @@ void TriCache::render(vec2f pos, vec2f scale, float rotation,
 
 	// if blendMultiplier is negative, subtract from target texture
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE);
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	if (blendMultiplier < 0.0f)
 	{
 		blendMultiplier = -blendMultiplier;
@@ -155,24 +118,20 @@ void TriCache::render(vec2f pos, vec2f scale, float rotation,
 	}
 
 	// set "transform" uniform mat4
-	glm::mat4 screen_transform(1.0f);
-	glm::mat4 full_transform(1.0f);
+	glm::mat4 world_transform(1.0f);
+	glm::mat4 ndc_transform(1.0f);
 
 	// scale, rotate, translate
 	// translate so center of screen is 0,0, then scale to -1.0 1.0f NDC (target w&h)
-	full_transform = glm::scale(full_transform, glm::vec3(2.f/target.width, 2.f/target.height, 1.0f)); //ndc
-	full_transform = glm::translate(full_transform, glm::vec3(target.width/-2.f, target.height/-2.f, 0.0f)); //ndc
+	ndc_transform = glm::scale(ndc_transform, glm::vec3(2.f/target.width, 2.f/target.height, 1.0f)); //ndc
+	ndc_transform = glm::translate(ndc_transform, glm::vec3(target.width/-2.f, target.height/-2.f, 0.0f)); //ndc
 
-	full_transform = glm::translate(full_transform, glm::vec3(pos.x, pos.y, 0.0f));
-	full_transform = glm::rotate(full_transform, rotation, glm::vec3(0.0f, 0.0f, 1.0f));
-	full_transform = glm::scale(full_transform, glm::vec3(scale.x, scale.y, 1.0f));
+	world_transform = glm::translate(world_transform, glm::vec3(pos.x, pos.y, 0.0f));
+	world_transform = glm::rotate(world_transform, rotation, glm::vec3(0.0f, 0.0f, 1.0f));
+	world_transform = glm::scale(world_transform, glm::vec3(scale.x, scale.y, 1.0f));
 
-	screen_transform = glm::translate(screen_transform, glm::vec3(pos.x, pos.y, 0.0f));
-	screen_transform = glm::rotate(screen_transform, rotation, glm::vec3(0.0f, 0.0f, 1.0f));
-	screen_transform = glm::scale(screen_transform, glm::vec3(scale.x, scale.y, 1.0f));
-
-	glUniformMatrix4fv(ctx->getVgShader().getUniformLocation("full_transform"), 1, GL_FALSE, glm::value_ptr(full_transform));
-	glUniformMatrix4fv(ctx->getVgShader().getUniformLocation("screen_transform"), 1, GL_FALSE, glm::value_ptr(screen_transform));
+	glUniformMatrix4fv(ctx->getVgShader().getUniformLocation("ndc_transform"), 1, GL_FALSE, glm::value_ptr(ndc_transform));
+	glUniformMatrix4fv(ctx->getVgShader().getUniformLocation("world_transform"), 1, GL_FALSE, glm::value_ptr(world_transform));
 
 	// draw elements
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_indices_buffer);

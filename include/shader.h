@@ -69,18 +69,18 @@ public:
 		glCompileShader(fShader);
 
 		int success;
-		char infoLog[512];
+		char infoLog[8192];
 		glGetShaderiv(vShader, GL_COMPILE_STATUS, &success);
 		if( !success )
 		{
-			glGetShaderInfoLog(vShader, 512, NULL, infoLog);
+			glGetShaderInfoLog(vShader, 8192, NULL, infoLog);
 			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "error: vertex shader compilation failed: %s", infoLog);
 			exit(1);
 		}
 		glGetShaderiv(fShader, GL_COMPILE_STATUS, &success);
 		if( !success )
 		{
-			glGetShaderInfoLog(fShader, 512, NULL, infoLog);
+			glGetShaderInfoLog(fShader, 8192, NULL, infoLog);
 			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "error: fragment shader compilation failed: %s", infoLog);
 			exit(1);
 		}
@@ -96,7 +96,7 @@ public:
 		glGetProgramiv(ID, GL_LINK_STATUS, &success);
 		if( !success )
 		{
-			glGetShaderInfoLog(fShader, 512, NULL, infoLog);
+			glGetProgramInfoLog(ID, 8192, NULL, infoLog);
 			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "error: shader program linking failed: %s", infoLog);
 			exit(1);
 		}

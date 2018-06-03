@@ -145,13 +145,8 @@ int main()
 	SDL_GL_MakeCurrent(window, context);
 
 	int winWidth, winHeight;
-	int fbWidth, fbHeight;
-	float pxRatio;
 
 	SDL_GetWindowSize(window, &winWidth, &winHeight);
-	fbWidth=winWidth; fbHeight=winHeight;
-
-	pxRatio = (float)fbWidth / (float)winWidth;
 
 #ifdef EMSCRIPTEN
 	emscripten_set_main_loop((em_callback_func)main_loop_iteration, 0, 1);

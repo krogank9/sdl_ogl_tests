@@ -1,36 +1,31 @@
 #include "context.h"
 #include "color.h"
 
-// for unit sq tri cache
-static const GLfloat unit_tri_verts[] = {
-	-0.5f, -0.5f, // left top
-	0.5f, -0.5f, // right top
-	0.5f, 0.5f, // right bot
-	-0.5f, 0.5f, // left bot
-};
-
-static const GLfloat unit_tri_tex_coords[] = {
-	0.f, 0.f, // left top
-	1.f, 0.f, // right top
-	1.f, 1.f, // right bot
-	0.f, 1.f, // left bot
-};
-
-static const GLuint unit_tri_indices[] = {
-	0, 1, 2, // first triangle
-	0, 2, 3 // second triangle
-};
-
-Context::Context()
+Context::Context(int viewport_width, int viewport_height, int msaa_level)
 	: vg_shader("vg_test.vert", "vg_test.frag"),
+	  msaa_level(msaa_level),
+	  unit_quad(TriCache::makeQuad(this, 1, 1)),
+	  screen_quad(TriCache::makeQuad(this, viewport_width, viewport_height)),
+	  viewport_width(viewport_width), viewport_height(viewport_height),
 	  white_texture(this, Color::WHITE()),
 	  clear_texture(this, Color::TRANSPARENT()),
 	  grey_texture(this, Color(100, 100, 100, 255)),
-	  purple_texture(this, Color::PURPLE()),
-	  unit_tri_cache(this, unit_tri_verts, 8, unit_tri_indices, 6, unit_tri_tex_coords),
-	  render_frame_num(0), internal_msaa_level(8)
+	  purple_texture(this, Color::PURPLE())
 {
 	vg_shader.use();
 	vg_shader.setInt("texture", 0);
 	vg_shader.setInt("mask_texture", 1);
+}
+
+Context::~Context()
+{
+	delete unit_quad;
+	delete screen_quad;
+
+	std::map<std::string, Texture*>::iterator it = render_textures.begin();
+	for (; it != render_textures.end(); it++)
+	{
+		std::pair<const std::string, Texture*>& p = *it;
+		delete p.second;
+	}
 }

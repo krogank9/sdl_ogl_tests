@@ -58,10 +58,10 @@ endif()
 
 # Include dir
 find_path(OPENGLES3_INCLUDE_DIR NAMES
-    GLES3/gl31.h
+    GLES3/gl3.h
 
     # iOS
-    ES3/gl1.h)
+    ES3/gl.h)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args("OpenGLES3" DEFAULT_MSG

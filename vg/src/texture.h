@@ -1,8 +1,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include <GLES3/gl31.h>
-#include <GLES3/gl32.h>
+#include <GLES3/gl3.h>
 
 #include "color.h"
 
@@ -17,18 +16,20 @@ class Context;
 class Texture
 {
 public:
-	Texture(Context* ctx, int width, int height, bool is_dummy=false);
+	Texture(Context* ctx, int width, int height);
 	Texture(Context* ctx, Color solidColor);
 
 	~Texture();
 
-	void bindToMask() const;
-	void bindToTexture() const;
+	void bindToMask();
+	void bindToTexture();
 	void bindToRenderTarget();
+
+	void blitToFramebuffer(GLuint id);
+	void clear();
 
 	const int width;
 	const int height;
-	const bool is_dummy;
 
 	const bool is_multisampled;
 
@@ -39,11 +40,13 @@ private:
 	GLuint framebuffer_id;
 	GLuint texture_id;
 	GLuint multisampled_framebuffer_id;
-	GLuint multisampled_texture_id;
+	GLuint multisampled_renderbuffer_id;
 
 	uint64_t render_frame_num;
 
 	float scale_uv; // allow for supersampling
+
+	bool is_cleared;
 
 	Context* ctx;
 };
