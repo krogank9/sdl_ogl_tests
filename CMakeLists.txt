@@ -36,8 +36,12 @@ endif(EMSCRIPTEN)
 add_subdirectory(ogl1)
 add_subdirectory(ogl2)
 add_subdirectory(ogl3)
-add_subdirectory(ogl4)
+if (NOT EMSCRIPTEN)
+    # cpp only test
+    add_subdirectory(ogl4)
+endif (NOT EMSCRIPTEN)
 
+add_subdirectory(alpha_test)
 add_subdirectory(vg)
 
 if (NOT ${PROJECT_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_BINARY_DIR})

@@ -17,7 +17,7 @@ Context::Context(int viewport_width, int viewport_height, int msaa_level)
 
 	if (num_ctx == 0)
 	{
-		vg_shader = new Shader("vg_test.vert", "vg_test.frag");
+		vg_shader = new Shader("alpha_test.vert", "alpha_test.frag");
 		vg_shader->use();
 		vg_shader->setInt("texture", 0);
 		vg_shader->setInt("mask_texture", 1);

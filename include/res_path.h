@@ -7,8 +7,6 @@
 
 std::string getResourcePath(const std::string &subDir = "");
 
-#ifdef RES_PATH_IMPLEMENTATION
-
 /*
  * Get the resource path for resources located in res/subDir
  * It's assumed the project directory is structured like:
@@ -43,7 +41,5 @@ std::string getResourcePath(const std::string &subDir){
 	}
 	return subDir.empty() ? baseRes : baseRes + subDir + PATH_SEP;
 }
-
-#endif
 
 #endif

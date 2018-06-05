@@ -1,17 +1,8 @@
-#ifdef EMSCRIPTEN
-	#include <emscripten/emscripten.h>
-	#include <emscripten/html5.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL.h>
 
-#ifndef EMSCRIPTEN
-	#include <GLES3/gl32.h>
-#else
-	#include <GLES3/gl3.h>
-#endif
+#include <GLES3/gl32.h>
 
 #include "utils.h"
 #include "context.h"
@@ -50,7 +41,6 @@ void calc_FPS()
 	}
 }
 
-#ifndef EMSCRIPTEN
 void MessageCallback( GLenum ,//source,
 				 GLenum type,
 				 GLuint ,//id,
@@ -63,16 +53,13 @@ void MessageCallback( GLenum ,//source,
 		   ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
 			type, severity, message );
 }
-#endif
 
-#define WIN_NAME "vg"
+#define WIN_NAME "alpha_test"
 
 void initGL()
 {
-#ifndef EMSCRIPTEN
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
-#endif
 }
 
 void render(Context* ctx)
@@ -87,32 +74,19 @@ void render(Context* ctx)
 	/////////// loop
 	ctx->clear();
 
-	float sin_slow = sin(SDL_GetTicks()/3000.f);
+	//ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->green_texture, ctx->white_texture, "");
 
-	float spin_rads = (sin(SDL_GetTicks()/12000.f) * M_PI*2) - M_PI;
-	float spin_rads_fast = (sin(SDL_GetTicks()/6000.f) * M_PI*2) - M_PI;
-	float spin_rads_slow = (sin(SDL_GetTicks()/24000.f) * M_PI*2) - M_PI;
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), 0.f, ctx->grey_texture, ctx->white_texture, RenderNameList("fg1", Color(1.f, 1.f, 1.f, 1.0f)));
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), 0.5f, ctx->purple_texture, ctx->white_texture, RenderNameList("fg2", Color(1.f, 1.f, 1.f, 1.0f)));
 
-	//sin_slow = 0.5f;
-	//spin_rads = 0.5f;
-	//spin_rads_slow = 0.3f;
+	//ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("green_bg"), ctx->white_texture, "");
+	//ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("fg1"), ctx->white_texture, "");
 
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), 0.f, ctx->white_texture, ctx->white_texture, "dummyCopy2"); // bg
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), -spin_rads_slow, ctx->white_texture, ctx->white_texture, RenderNameList("dummyCopy2", Color(-1.f,-1.f,-1.f,-1.f))); // sq for mask
+	ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("fg2"), ctx->white_texture, "fg1");
 
-	// bg
-	// if rendered to "pre_screen" outline mess is black, if render to "" it's white
-	//ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), 0.f, ctx->green_texture, ctx->white_texture, "");
+	//ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("fgg"), ctx->white_texture, "");
 
-	//change to render to pre_screen2 to trigger on both sides
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f + (ctx->getViewportWidth()/2.f)*sin_slow, ctx->getViewportHeight()/2.f) - (ctx->getViewportHeight()/2.3f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), spin_rads_slow, ctx->grey_texture, ctx->white_texture, RenderNameList("pre_screen2", Color(1.f, 1.f, 1.f, 1.0f)));
-
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), spin_rads_slow, ctx->purple_texture, ctx->getRenderTexture("dummyCopy2"), RenderNameList("pre_screen", Color(1.f, 1.f, 1.f, 1.0f)));
-
-	ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("pre_screen"), ctx->white_texture, "pre_screen2");
-	ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("pre_screen2"), ctx->white_texture, "");
-
-	ctx->getRenderTexture("").blitToFramebuffer(0);
+	ctx->getRenderTexture("fg1").blitToFramebuffer(0);
 }
 
 void main_loop_iteration(void* v_ctx)
@@ -183,27 +157,12 @@ int main()
 
 	SDL_GetWindowSize(window, &winWidth, &winHeight);
 
-#ifdef EMSCRIPTEN
-	EmscriptenWebGLContextAttributes attrs;
-	attrs.antialias = false;
-	attrs.majorVersion = 2;
-	attrs.minorVersion = 0;
-	attrs.alpha = false;
-	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE webgl_context = emscripten_webgl_create_context(0, &attrs);
-	emscripten_webgl_make_context_current(webgl_context);
-
-	Context ctx(winWidth, winHeight);
-	glDepthMask(false);
-
-	emscripten_set_main_loop_arg((em_arg_callback_func)main_loop_iteration, &ctx, 0, 1);
-#else
 	SDL_GLContext gl_context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, gl_context);
 	Context ctx(winWidth, winHeight);
 	glDepthMask(false);
 	while (true)
 		main_loop_iteration(&ctx);
-#endif
 
 	return 0;
 }

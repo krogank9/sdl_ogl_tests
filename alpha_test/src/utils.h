@@ -11,6 +11,8 @@
 #include <GLES3/gl3.h>
 #include <glm/glm.hpp>
 
+#define ABS(x) (x<0?-x:x)
+
 class Utils
 {
 public:

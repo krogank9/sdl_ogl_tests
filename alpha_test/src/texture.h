@@ -6,6 +6,12 @@
 #include "color.h"
 #include "render_name_list.h"
 
+#define MAKE_PO2(x) (x<2?1: x<4?2: x<8?4:\
+					x<16?8: x<32?16: x<64?32:\
+					x<128?64: x<256?128: x<512?256:\
+					x<1024?512: x<2048?1024: x<4096?2048:\
+					x<8192?4096: 8192)
+
 class Context;
 
 class Texture

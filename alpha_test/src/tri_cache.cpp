@@ -67,7 +67,7 @@ TriCache* TriCache::makeQuad(Context* ctx, vec2f size)
 // multiple render targets and masks. RenderDescr can cache multiple masks mixed
 void TriCache::render(vec2f pos, vec2f scale, float rotation,
 					  Texture& texture, Texture& mask, RenderNameList targets)
-{
+{	
 	ctx->getVgShader().use();
 
 	texture.bindToTexture();
