@@ -3,7 +3,9 @@
 #include "context.h"
 
 Texture::Texture(Context* ctx, int width, int height)
-	: ctx(ctx), width(width), height(height), is_multisampled(ctx->msaa_level > 0), is_cleared(false), is_msaa_blit(false)
+	: ctx(ctx), width(width), height(height),
+	  is_multisampled(ctx->msaa_level > 0),
+	  is_cleared(false), is_msaa_blit(false), is_premultiplied(false)
 {
 	init(width, height, 0);
 	if (ctx->msaa_level > 0)
@@ -11,7 +13,9 @@ Texture::Texture(Context* ctx, int width, int height)
 }
 
 Texture::Texture(Context* ctx, Color solidColor)
-	: ctx(ctx), width(1), height(1), is_multisampled(false), is_cleared(false), is_msaa_blit(false)
+	: ctx(ctx), width(1), height(1),
+	  is_multisampled(false), is_cleared(false),
+	  is_msaa_blit(false), is_premultiplied(false)
 {
 	uint32_t colorByte = solidColor.getRGBA();
 	init(1, 1, &colorByte);

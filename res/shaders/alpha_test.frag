@@ -38,4 +38,5 @@ void main(void) {
     texture_color *= mask_color * render_color_mask;
 
     gl_FragColor = premultiply(mask_color * texture_color);
+    //gl_FragColor = mask_color * texture_color;
 }
