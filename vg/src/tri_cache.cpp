@@ -66,14 +66,13 @@ TriCache* TriCache::makeQuad(Context* ctx, vec2f size)
 // <Texture, intensity> pairs used for render & mask.
 // multiple render targets and masks. RenderDescr can cache multiple masks mixed
 void TriCache::render(vec2f pos, vec2f scale, float rotation,
-					  Texture& texture, Texture& mask, RenderNameList targets)
+					  Texture& texture, RenderNameList masks, RenderNameList targets)
 {
-	ctx->getVgShader().use();
-
+	ctx->useVgShader();
 	texture.bindToTexture();
-	mask.bindToMask();
 	ctx->getVgShader().setVec2("texture_size", texture.width, texture.height);
-	ctx->getVgShader().setVec2("mask_texture_size", mask.width, mask.height);
+	// make sure not to premultiply twice
+	ctx->getVgShader().setBool("texture_premultiplied", texture.isPremultiplied());
 
 	// bind verts
 	glBindBuffer(GL_ARRAY_BUFFER, gl_vert_buffer);
@@ -117,32 +116,45 @@ void TriCache::render(vec2f pos, vec2f scale, float rotation,
 	glUniformMatrix4fv(ctx->getVgShader().getUniformLocation("ndc_transform"), 1, GL_FALSE, glm::value_ptr(ndc_transform));
 	glUniformMatrix4fv(ctx->getVgShader().getUniformLocation("world_transform"), 1, GL_FALSE, glm::value_ptr(world_transform));
 
+	// bind masks
+	ctx->getVgShader().setInt("mask_count", masks.size());
+	for (unsigned int i=0; i<masks.size(); ++i)
+	{
+		Texture& mask = ctx->getRenderTexture(masks.getName(i));
+		Color mask_tint = masks.getColorMask(i);
+		mask.bindToMask(i+1);
+		std::string mask_prefix = "mask" + std::to_string(i+1);
+
+		ctx->getVgShader().setBool(mask_prefix+"_premultiplied", mask.isPremultiplied());
+		ctx->getVgShader().setVec4(mask_prefix+"_tint", mask_tint.r, mask_tint.g, mask_tint.b, mask_tint.a);
+		ctx->getVgShader().setVec2(mask_prefix+"_texture_size", mask.width, mask.height);
+	}
+
 	// draw elements
 	for (unsigned int i=0; i<targets.size(); ++i)
 	{
-		ctx->getRenderTexture(targets.getName(i)).bindToRenderTarget();
-		Color renderColorMask = targets.getColorMask(i);
+		Texture& target = ctx->getRenderTexture(targets.getName(i));
+		target.bindToRenderTarget();
+
+		Color render_tint = targets.getColorMask(i);
 
 		glEnable(GL_BLEND);
 		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-
-		if (renderColorMask.hasNegative())
+		if (render_tint.hasNegative())
 		{
-			renderColorMask.makePositive();
+			render_tint.makePositive();
+			// just here for completeness, so you can subtract from masks
+			glBlendFunc(GL_ONE, GL_ONE);
 			glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
 		}
 		else
 		{
+			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 			glBlendEquation(GL_FUNC_ADD);
 		}
 
-		// make sure not to premultiply twice,
-		ctx->getVgShader().setBool("texture_premultiplied", texture.isPremultiplied());
-		ctx->getVgShader().setBool("mask_premultiplied", mask.isPremultiplied());
-
-		ctx->getVgShader().setVec4("render_color_mask", renderColorMask.r, renderColorMask.g, renderColorMask.b, renderColorMask.a);
+		ctx->getVgShader().setVec4("render_tint", render_tint.r, render_tint.g, render_tint.b, render_tint.a);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_indices_buffer);
 		glDrawElements(GL_TRIANGLES, indices_size, GL_UNSIGNED_INT, 0);

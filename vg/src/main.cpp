@@ -93,26 +93,26 @@ void render(Context* ctx)
 	float spin_rads_fast = (sin(SDL_GetTicks()/6000.f) * M_PI*2) - M_PI;
 	float spin_rads_slow = (sin(SDL_GetTicks()/24000.f) * M_PI*2) - M_PI;
 
-	//sin_slow = 0.5f;
-	//spin_rads = 0.5f;
-	//spin_rads_slow = 0.3f;
+	sin_slow = 0.5f;
+	spin_rads = 0.5f;
+	spin_rads_slow = 0.3f;
 
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), 0.f, ctx->white_texture, ctx->white_texture, "dummyCopy2"); // bg
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), -spin_rads_slow, ctx->white_texture, ctx->white_texture, RenderNameList("dummyCopy2", Color(-1.f,-1.f,-1.f,-1.f))); // sq for mask
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()*2,ctx->getViewportHeight()*2), spin_rads_slow, ctx->green_texture, RenderNameList(), RenderNameList("", Color(1.f,1.f,1.f,1.f)));//bg
+
+	//ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), 0.f, ctx->white_texture, RenderNameList(), RenderNameList("dummyCopy2", Color(1.f,1.f,1.f,1.0f))); // sq for mask
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), spin_rads_slow, ctx->white_texture, RenderNameList(), RenderNameList("dummyCopy2", Color(1.f,1.f,1.f,1.0f))); // sq for mask
 
 	// bg
 	// if rendered to "pre_screen" outline mess is black, if render to "" it's white
-	//ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), 0.f, ctx->green_texture, ctx->white_texture, "");
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2,ctx->getViewportHeight()/2)/2.f, spin_rads, ctx->white_texture, RenderNameList(), "");
 
 	//change to render to pre_screen2 to trigger on both sides
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f + (ctx->getViewportWidth()/2.f)*sin_slow, ctx->getViewportHeight()/2.f) - (ctx->getViewportHeight()/2.3f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), spin_rads_slow, ctx->grey_texture, ctx->white_texture, RenderNameList("pre_screen2", Color(1.f, 1.f, 1.f, 1.0f)));
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f + (ctx->getViewportWidth()/2.f)*sin_slow, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), spin_rads_slow, ctx->grey_texture, RenderNameList(), RenderNameList("pre_screen2", Color(1.f, 1.f, 1.f, 1.0f)));
 
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), spin_rads_slow, ctx->purple_texture, ctx->getRenderTexture("dummyCopy2"), RenderNameList("pre_screen", Color(1.f, 1.f, 1.f, 1.0f)));
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), spin_rads_slow, ctx->purple_texture, RenderNameList("dummyCopy2", Color(-1.0f)), RenderNameList("pre_screen", Color(1.f, 1.f, 1.f, 1.0f)));
 
-	ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("pre_screen"), ctx->white_texture, "pre_screen2");
-	ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("pre_screen2"), ctx->white_texture, "");
-
-	ctx->getRenderTexture("").blitToFramebuffer(0);
+	ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("pre_screen"), RenderNameList(), "pre_screen2");
+	ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("pre_screen2"), RenderNameList(), "");
 }
 
 void main_loop_iteration(void* v_ctx)
@@ -164,8 +164,8 @@ int main()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
-	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
 	window = SDL_CreateWindow(WIN_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 800,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);//only SDL_WINDOW_OPENGL may suffice
 	if (!window)//if it doesn't work, lower the bar
@@ -185,14 +185,14 @@ int main()
 
 #ifdef EMSCRIPTEN
 	EmscriptenWebGLContextAttributes attrs;
-	attrs.antialias = false;
+	attrs.antialias = true;
 	attrs.majorVersion = 2;
 	attrs.minorVersion = 0;
 	attrs.alpha = false;
 	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE webgl_context = emscripten_webgl_create_context(0, &attrs);
 	emscripten_webgl_make_context_current(webgl_context);
 
-	Context ctx(winWidth, winHeight);
+	Context ctx(winWidth, winHeight, 4);
 	glDepthMask(false);
 
 	emscripten_set_main_loop_arg((em_arg_callback_func)main_loop_iteration, &ctx, 0, 1);

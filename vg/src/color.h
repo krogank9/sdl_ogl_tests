@@ -9,10 +9,15 @@
 class Color
 {
 public:
+	static constexpr float IGNORE_CHANNEL = 555.f;
+
 	Color(const Color& copy) : r(copy.r), g(copy.g), b(copy.b), a(copy.a) {}
 	Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a=255) : r(r/255.f), g(g/255.f), b(b/255.f), a(a/255.f) {}
 	Color(int r, int g, int b, int a=255) : r(r/255.f), g(g/255.f), b(b/255.f), a(a/255.f) {}
 	Color(float r, float g, float b, float a=1.0f) : r(r), g(g), b(b), a(a) {}
+
+	Color(int a) : r(IGNORE_CHANNEL), g(IGNORE_CHANNEL), b(IGNORE_CHANNEL), a(a/255.f) {}
+	Color(float a=IGNORE_CHANNEL) : r(IGNORE_CHANNEL), g(IGNORE_CHANNEL), b(IGNORE_CHANNEL), a(a) {}
 
 	bool operator==(const Color& rhs) const
 	{

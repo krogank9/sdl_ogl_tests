@@ -10,6 +10,10 @@
 class RenderNameList
 {
 public:
+	RenderNameList() : is_sorted_(true)
+	{
+	}
+
 	RenderNameList(const RenderNameList& copy)
 		: is_sorted_(copy.is_sorted())
 	{
@@ -20,7 +24,7 @@ public:
 		}
 	}
 
-	RenderNameList(std::string name="", Color color_mask=Color(1.f,1.f,1.f,1.f))
+	RenderNameList(std::string name, Color color_mask=Color(1.f,1.f,1.f,1.f))
 		: is_sorted_(true)
 	{
 		names.push_back(name);

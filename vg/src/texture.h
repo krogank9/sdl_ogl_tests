@@ -11,12 +11,12 @@ class Context;
 class Texture
 {
 public:
-	Texture(Context* ctx, int width, int height);
+	Texture(Context* ctx, int width, int height, bool is_dummy=false);
 	Texture(Context* ctx, Color solidColor);
 
 	~Texture();
 
-	void bindToMask();
+	void bindToMask(int id);
 	void bindToTexture();
 	void bindToRenderTarget(bool premultiplying=true);
 
@@ -29,7 +29,8 @@ public:
 	const int width;
 	const int height;
 
-	bool is_multisampled;
+	const bool is_multisampled;
+	const bool is_dummy;
 
 private:
 	void init(int width, int height, uint32_t* pixels);

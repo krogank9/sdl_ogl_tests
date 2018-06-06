@@ -22,7 +22,7 @@ public:
 	~TriCache();
 
 	void render(vec2f pos, vec2f scale, float rotation,
-				Texture& texture, Texture& mask, RenderNameList targets=RenderNameList());
+				Texture& texture, RenderNameList masks=RenderNameList(), RenderNameList targets=RenderNameList());
 
 	static TriCache* makeQuad(Context* ctx, vec2f size);
 	static TriCache* makeQuad(Context* ctx, int width, int height)

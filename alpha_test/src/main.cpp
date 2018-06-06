@@ -77,7 +77,7 @@ void render(Context* ctx)
 	ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->green_texture, ctx->white_texture, "");
 
 	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), 0.f, ctx->grey_texture, ctx->white_texture, RenderNameList("fg1", Color(1.f, 1.f, 1.f, 1.0f)));
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), 0.5f, ctx->purple_texture, ctx->white_texture, RenderNameList("fg2", Color(1.f, 1.f, 1.f, 1.0f)));
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), 0.05f, ctx->purple_texture, ctx->white_texture, RenderNameList("fg2", Color(1.f, 1.f, 1.f, 1.0f)));
 
 	//ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("green_bg"), ctx->white_texture, "");
 	//ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("fg1"), ctx->white_texture, "");
