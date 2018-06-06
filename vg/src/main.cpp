@@ -89,22 +89,22 @@ void render(Context* ctx)
 
 	float sin_slow = sin(SDL_GetTicks()/3000.f);
 
-	float spin_rads = (sin(SDL_GetTicks()/12000.f) * M_PI*2) - M_PI;
-	float spin_rads_fast = (sin(SDL_GetTicks()/6000.f) * M_PI*2) - M_PI;
-	float spin_rads_slow = (sin(SDL_GetTicks()/24000.f) * M_PI*2) - M_PI;
+	float spin_rads = (sin(SDL_GetTicks()/6000.f) * M_PI*2) - M_PI;
+	float spin_rads_fast = (sin(SDL_GetTicks()/3000.f) * M_PI*2) - M_PI;
+	float spin_rads_slow = (sin(SDL_GetTicks()/12000.f) * M_PI*2) - M_PI;
 
-	sin_slow = 0.5f;
-	spin_rads = 0.5f;
-	spin_rads_slow = 0.3f;
+	//sin_slow = 0.5f;
+	//spin_rads = 0.5f;
+	//spin_rads_slow = 0.3f;
 
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()*2,ctx->getViewportHeight()*2), spin_rads_slow, ctx->green_texture, RenderNameList(), RenderNameList("", Color(1.f,1.f,1.f,1.f)));//bg
+	//ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()*2,ctx->getViewportHeight()*2), spin_rads_slow, ctx->green_texture, RenderNameList(), RenderNameList("", Color(1.f,1.f,1.f,1.f)));//bg
 
-	//ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), 0.f, ctx->white_texture, RenderNameList(), RenderNameList("dummyCopy2", Color(1.f,1.f,1.f,1.0f))); // sq for mask
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), spin_rads_slow, ctx->white_texture, RenderNameList(), RenderNameList("dummyCopy2", Color(1.f,1.f,1.f,1.0f))); // sq for mask
+	//ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), 0.f, ctx->empty_texture, RenderNameList(), RenderNameList("dummyCopy2", Color(1.f,1.f,1.f,1.0f))); // sq for mask
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), spin_rads_slow, ctx->empty_texture, RenderNameList(), RenderNameList("dummyCopy2", Color(1.f,1.f,1.f,1.0f))); // sq for mask
 
 	// bg
 	// if rendered to "pre_screen" outline mess is black, if render to "" it's white
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2,ctx->getViewportHeight()/2)/2.f, spin_rads, ctx->white_texture, RenderNameList(), "");
+	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2,ctx->getViewportHeight()/2)/2.f, spin_rads, ctx->empty_texture, RenderNameList(), "");
 
 	//change to render to pre_screen2 to trigger on both sides
 	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f + (ctx->getViewportWidth()/2.f)*sin_slow, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), spin_rads_slow, ctx->grey_texture, RenderNameList(), RenderNameList("pre_screen2", Color(1.f, 1.f, 1.f, 1.0f)));

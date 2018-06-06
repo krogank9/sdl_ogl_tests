@@ -78,6 +78,17 @@ Texture::~Texture()
 	if (is_dummy)
 		return;
 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
 	glDeleteTextures(1, &texture_id);
 	glDeleteFramebuffers(1, &framebuffer_id);
 
@@ -165,7 +176,11 @@ void Texture::bindToMask(int id)
 void Texture::bindToTexture()
 {
 	if (is_dummy)
+	{
+		ctx->getVgShader().setBool("has_texture", false);
 		return;
+	}
+	ctx->getVgShader().setBool("has_texture", true);
 
 	if (is_multisampled)
 		blitToFramebuffer(framebuffer_id);

@@ -32,6 +32,7 @@ uniform bool mask3_premultiplied;
 uniform bool mask4_premultiplied;
 
 uniform int mask_count;
+uniform bool has_texture;
 
 vec4 premultiply(vec4 color) {
 	return vec4(color.rgb * color.a, color.a);
@@ -77,10 +78,13 @@ vec4 get_mask(sampler2D texture, vec2 pos, vec4 tint, bool premultiplied) {
 }
 
 void main(void) {
-	vec4 texture_color = texture2D(texture, tex_coord/texture_size);
-	if (texture_premultiplied)
-		texture_color = undo_premultiply(texture_color);
-
+	vec4 texture_color = vec4(1.0, 1.0, 1.0, 1.0);
+	if (has_texture)
+	{
+		texture_color = texture2D(texture, tex_coord/texture_size);
+		if (texture_premultiplied)
+			texture_color = undo_premultiply(texture_color);
+	}
 	texture_color *= render_tint;
 
 	// need to get negative mask working here

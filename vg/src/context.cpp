@@ -9,6 +9,7 @@ Context::Context(int viewport_width, int viewport_height, int msaa_level, bool r
 	: internal_msaa_level(msaa_level),
 	  render_to_screen(render_to_screen),
 	  viewport_width(viewport_width), viewport_height(viewport_height),
+	  empty_texture(this, 0, 0, true),
 	  white_texture(this, Color::WHITE()),
 	  clear_texture(this, Color::TRANSPARENT()),
 	  grey_texture(this, Color(100, 100, 100, 255)),

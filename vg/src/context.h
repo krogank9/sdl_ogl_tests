@@ -113,6 +113,7 @@ public:
 	const bool render_to_screen;
 
 	// some debug & ease of use primitives
+	Texture empty_texture;
 	Texture black_texture;
 	Texture white_texture;
 	Texture clear_texture;
