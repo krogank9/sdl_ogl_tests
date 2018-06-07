@@ -7,6 +7,8 @@
 
 #include "color.h"
 
+#define MAX_MASKS 4
+
 class RenderNameList
 {
 public:

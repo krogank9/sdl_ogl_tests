@@ -100,25 +100,16 @@ void TriCache::render(vec2f pos, vec2f scale, float rotation,
 		glEnableVertexAttribArray(ctx->getVgShader().getAttribLocation("a_tex_coord"));
 	}
 
-	// set "transform" uniform mat4
-	glm::mat4 world_transform(1.0f);
-	glm::mat4 ndc_transform(1.0f);
-
 	// scale, rotate, translate
-	// translate so center of screen is 0,0, then scale to -1.0 1.0f NDC (target w&h)
-	ndc_transform = glm::scale(ndc_transform, glm::vec3(2.f/ctx->getViewportWidth(), 2.f/ctx->getViewportHeight(), 1.0f)); //ndc
-	ndc_transform = glm::translate(ndc_transform, glm::vec3(ctx->getViewportWidth()/-2.f, ctx->getViewportHeight()/-2.f, 0.0f)); //ndc
-
+	glm::mat4 world_transform(1.0f);
 	world_transform = glm::translate(world_transform, glm::vec3(pos.x, pos.y, 0.0f));
 	world_transform = glm::rotate(world_transform, rotation, glm::vec3(0.0f, 0.0f, 1.0f));
 	world_transform = glm::scale(world_transform, glm::vec3(scale.x, scale.y, 1.0f));
-
-	glUniformMatrix4fv(ctx->getVgShader().getUniformLocation("ndc_transform"), 1, GL_FALSE, glm::value_ptr(ndc_transform));
 	glUniformMatrix4fv(ctx->getVgShader().getUniformLocation("world_transform"), 1, GL_FALSE, glm::value_ptr(world_transform));
 
 	// bind masks
 	ctx->getVgShader().setInt("mask_count", masks.size());
-	for (unsigned int i=0; i<masks.size(); ++i)
+	for (unsigned int i=0; i<masks.size() && i<MAX_MASKS; ++i)
 	{
 		Texture& mask = ctx->getRenderTexture(masks.getName(i));
 		Color mask_tint = masks.getColorMask(i);
@@ -133,6 +124,13 @@ void TriCache::render(vec2f pos, vec2f scale, float rotation,
 	// draw elements
 	for (unsigned int i=0; i<targets.size(); ++i)
 	{
+		// translate so center of screen is 0,0, then scale to -1.0 1.0f NDC (target w&h)
+		bool flip_render = targets.getName(i) == "" && ctx->is_final;
+		glm::mat4 ndc_transform(1.0f);
+		ndc_transform = glm::scale(ndc_transform, glm::vec3(2.f/ctx->getViewportWidth(), (flip_render?-2.f:2.f)/ctx->getViewportHeight(), 1.0f)); //ndc
+		ndc_transform = glm::translate(ndc_transform, glm::vec3(ctx->getViewportWidth()/-2.f, ctx->getViewportHeight()/-2.f, 0.0f)); //ndc
+		glUniformMatrix4fv(ctx->getVgShader().getUniformLocation("ndc_transform"), 1, GL_FALSE, glm::value_ptr(ndc_transform));
+
 		Texture& target = ctx->getRenderTexture(targets.getName(i));
 		target.bindToRenderTarget();
 

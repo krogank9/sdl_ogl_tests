@@ -27,7 +27,7 @@ void LineCache::makeLine(float thickness, LINE_CAP_TYPE cap)
 
 	float half_thickness = thickness/2.f;
 
-	// *2 for each (x,y) and *2 again for normal in both directions
+	// *2 for (x,y) and *2 again for normal in both directions
 	int verts_arr_size = verts.size()*2*2;
 	// each quad uses 6 indices, 3 for each triangle
 	int quad_count = verts.size() - 1;
@@ -35,7 +35,7 @@ void LineCache::makeLine(float thickness, LINE_CAP_TYPE cap)
 
 	GLfloat verts_arr[verts_arr_size];
 	GLfloat tex_coords_arr[verts_arr_size];
-	GLuint indices_arr[(verts.size()*2-1)*6];
+	GLuint indices_arr[indices_arr_size];
 
 	float length_so_far = 0.f;
 	int prev_bot_index_x = 0;
@@ -51,8 +51,8 @@ void LineCache::makeLine(float thickness, LINE_CAP_TYPE cap)
 		int cur_bot_index_y = i*4+3;
 
 		// verts
-		vec2f top_vec = (verts[i] + normals[i]) * half_thickness;
-		vec2f bot_vec = (verts[i] + normals[i]) * -half_thickness;
+		vec2f top_vec = verts[i] - (normals[i] * half_thickness);
+		vec2f bot_vec = verts[i] + (normals[i] * half_thickness);
 		verts_arr[cur_top_index_x] = top_vec.x;
 		verts_arr[cur_top_index_y] = top_vec.y;
 		verts_arr[cur_bot_index_x] = bot_vec.x;
@@ -106,15 +106,15 @@ void LineCache::makeNormals()
 	it = relative_verts.begin();
 
 	// line join normal = angle avg of two neighboring normals
-	vec2f prev = it->normalize();
+	vec2f prev = it->normalize().rotate90CW();
 	vec2f cur;
 
-	normals.push_back(prev.rotate90CCW()); // first has only one neighbor
-	for (; it != relative_verts.end()-1;)
+	normals.push_back(prev); // first has only one neighbor
+	for (; it != (relative_verts.end()-1);)
 	{
-		cur = (++it)->normalize();
-		normals.push_back(prev.avgByAngleTo(cur));
+		cur = (++it)->normalize().rotate90CW();
+		normals.push_back(prev.avgByAngleToCW(cur));
 		prev = cur;
 	}
-	normals.push_back(cur.rotate90CCW()); // last has only one neighbor
+	normals.push_back(cur); // last has only one neighbor
 }

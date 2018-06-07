@@ -78,16 +78,36 @@ Texture::~Texture()
 	if (is_dummy)
 		return;
 
+	GLint bound_texture_id;
+	// remove any bindings to our texture_id
+
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &bound_texture_id);
+	if ((GLuint)bound_texture_id == texture_id)
+	{
+		ctx->white_texture.bindToTexture();
+		ctx->empty_texture.bindToTexture();
+	}
+
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &bound_texture_id);
+	if ((GLuint)bound_texture_id == texture_id)
+		ctx->white_texture.bindToMask(1);
+
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &bound_texture_id);
+	if ((GLuint)bound_texture_id == texture_id)
+		ctx->white_texture.bindToMask(2);
+
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &bound_texture_id);
+	if ((GLuint)bound_texture_id == texture_id)
+		ctx->white_texture.bindToMask(3);
+
 	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &bound_texture_id);
+	if ((GLuint)bound_texture_id == texture_id)
+		ctx->white_texture.bindToMask(4);
 
 	glDeleteTextures(1, &texture_id);
 	glDeleteFramebuffers(1, &framebuffer_id);

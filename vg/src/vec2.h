@@ -22,10 +22,10 @@ public:
 		return *this;
 	}
 
-	vec2 operator+(vec2& v) {
+	vec2 operator+(vec2 v) {
 		return vec2(x + v.x, y + v.y);
 	}
-	vec2 operator-(vec2& v) {
+	vec2 operator-(vec2 v) {
 		return vec2(x - v.x, y - v.y);
 	}
 
@@ -80,10 +80,9 @@ public:
 		this->y = y;
 	}
 
-	vec2 rotate(double deg) const {
-		double theta = deg / 180.0 * M_PI;
-		double c = cos(theta);
-		double s = sin(theta);
+	vec2 rotate(double rads) const {
+		double c = cos(rads);
+		double s = sin(rads);
 		double tx = x * c - y * s;
 		double ty = x * s + y * c;
 		return vec2(tx,ty);
@@ -106,14 +105,26 @@ public:
 		return vec2((x+other.x)/2, (y+other.y)/2);
 	}
 
-	vec2 avgByAngleTo(vec2& other) const
+	vec2 avgByAngleToCW(vec2& other) const
 	{
 		double myAngle = atan2(y, x);
 		double otherAngle = atan2(other.y, other.x);
 		if (otherAngle < myAngle)
 			otherAngle += M_PI*2;
-		double halfwayAngle = (otherAngle - myAngle)/2;
-		return rotate(halfwayAngle);
+		double halfwayAngle = (otherAngle - myAngle)/2.f;
+		double addAngle = halfwayAngle - myAngle;
+		return rotate(-addAngle);
+	}
+
+	vec2 avgByAngleToCCW(vec2& other) const
+	{
+		double myAngle = atan2(y, x);
+		double otherAngle = atan2(other.y, other.x);
+		if (myAngle < otherAngle)
+			myAngle += M_PI*2;
+		double halfwayAngle = (myAngle - otherAngle)/2.f;
+		double addAngle = halfwayAngle - myAngle;
+		return rotate(-addAngle);
 	}
 
 	float dist(vec2 v) const {

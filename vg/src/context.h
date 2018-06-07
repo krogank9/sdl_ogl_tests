@@ -32,7 +32,7 @@ private:
 	std::set<std::string> render_textures_accessed;
 
 public:
-	Context(int viewport_width=0, int viewport_height=0, int internal_msaa_level=8, bool render_to_screen=true);
+	Context(int viewport_width=0, int viewport_height=0, int internal_msaa_level=8, bool render_to_screen=true, bool is_final=true);
 	~Context();
 
 	Shader& getVgShader()
@@ -80,6 +80,7 @@ public:
 	}
 	int getViewportWidth() { return viewport_width; }
 	int getViewportHeight() { return viewport_height; }
+	vec2f getViewportSize() { return vec2f(viewport_width, viewport_height); }
 
 	// generate viewport size textures
 	Texture& getRenderTexture(std::string name)
@@ -111,6 +112,7 @@ public:
 
 	const int internal_msaa_level;
 	const bool render_to_screen;
+	const bool is_final;
 
 	// some debug & ease of use primitives
 	Texture empty_texture;

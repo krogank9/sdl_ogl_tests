@@ -16,6 +16,7 @@
 #include "utils.h"
 #include "context.h"
 #include "tri_cache.h"
+#include "line_cache.h"
 #include "texture.h"
 #include "render_name_list.h"
 
@@ -89,30 +90,25 @@ void render(Context* ctx)
 
 	float sin_slow = sin(SDL_GetTicks()/3000.f);
 
-	float spin_rads = (sin(SDL_GetTicks()/6000.f) * M_PI*2) - M_PI;
-	float spin_rads_fast = (sin(SDL_GetTicks()/3000.f) * M_PI*2) - M_PI;
-	float spin_rads_slow = (sin(SDL_GetTicks()/12000.f) * M_PI*2) - M_PI;
+	float spin_rads = (sin(SDL_GetTicks()/12000.f) * M_PI*2) - M_PI;
+	float spin_rads_fast = (sin(SDL_GetTicks()/6000.f) * M_PI*2) - M_PI;
+	float spin_rads_slow = (sin(SDL_GetTicks()/24000.f) * M_PI*2) - M_PI;
 
 	//sin_slow = 0.5f;
 	//spin_rads = 0.5f;
 	//spin_rads_slow = 0.3f;
 
-	//ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()*2,ctx->getViewportHeight()*2), spin_rads_slow, ctx->green_texture, RenderNameList(), RenderNameList("", Color(1.f,1.f,1.f,1.f)));//bg
-
-	//ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), 0.f, ctx->empty_texture, RenderNameList(), RenderNameList("dummyCopy2", Color(1.f,1.f,1.f,1.0f))); // sq for mask
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), spin_rads_slow, ctx->empty_texture, RenderNameList(), RenderNameList("dummyCopy2", Color(1.f,1.f,1.f,1.0f))); // sq for mask
-
-	// bg
-	// if rendered to "pre_screen" outline mess is black, if render to "" it's white
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2,ctx->getViewportHeight()/2)/2.f, spin_rads, ctx->empty_texture, RenderNameList(), "");
-
-	//change to render to pre_screen2 to trigger on both sides
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f + (ctx->getViewportWidth()/2.f)*sin_slow, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth()/2.f,ctx->getViewportHeight()/2.f), spin_rads_slow, ctx->grey_texture, RenderNameList(), RenderNameList("pre_screen2", Color(1.f, 1.f, 1.f, 1.0f)));
-
-	ctx->getUnitQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(ctx->getViewportWidth(),ctx->getViewportHeight()), spin_rads_slow, ctx->purple_texture, RenderNameList("dummyCopy2", Color(-1.0f)), RenderNameList("pre_screen", Color(1.f, 1.f, 1.f, 1.0f)));
-
-	ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("pre_screen"), RenderNameList(), "pre_screen2");
-	ctx->getScreenQuad().render(vec2f(ctx->getViewportWidth()/2.f, ctx->getViewportHeight()/2.f), vec2f(1,1), 0.f, ctx->getRenderTexture("pre_screen2"), RenderNameList(), "");
+	ctx->getUnitQuad().render(ctx->getViewportSize()/2.f, vec2f(100.f, 100.f), 0.3f, ctx->empty_texture, RenderNameList(), "");
+	ctx->getScreenQuad().render(ctx->getViewportSize()/2.f, vec2f(1.f, 1.f), 0.f, ctx->getRenderTexture("abc"), RenderNameList(), "");
+/*
+	std::vector<vec2f> verts;
+	verts.push_back(vec2f(100,100));
+	verts.push_back(vec2f(200,200));
+	verts.push_back(vec2f(400,200));
+	verts.push_back(vec2f(500,400));
+	LineCache lc(ctx, verts);
+	lc.getLine(10, LineCache::NONE).render(vec2f(), vec2f(1,1), 0.f, ctx->empty_texture, RenderNameList(), "");
+*/
 }
 
 void main_loop_iteration(void* v_ctx)

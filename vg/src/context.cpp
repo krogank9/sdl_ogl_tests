@@ -5,9 +5,10 @@ Shader* Context::vg_shader;
 Shader* Context::cur_shader;
 int Context::num_ctx;
 
-Context::Context(int viewport_width, int viewport_height, int msaa_level, bool render_to_screen)
+Context::Context(int viewport_width, int viewport_height, int msaa_level, bool render_to_screen, bool is_final)
 	: internal_msaa_level(msaa_level),
 	  render_to_screen(render_to_screen),
+	  is_final(render_to_screen||is_final),
 	  viewport_width(viewport_width), viewport_height(viewport_height),
 	  empty_texture(this, 0, 0, true),
 	  white_texture(this, Color::WHITE()),
@@ -30,6 +31,8 @@ Context::Context(int viewport_width, int viewport_height, int msaa_level, bool r
 		vg_shader->setInt("mask2_texture", 2);
 		vg_shader->setInt("mask3_texture", 3);
 		vg_shader->setInt("mask4_texture", 4);
+
+		white_texture.bindToTexture();
 		white_texture.bindToMask(1);
 		white_texture.bindToMask(2);
 		white_texture.bindToMask(3);
