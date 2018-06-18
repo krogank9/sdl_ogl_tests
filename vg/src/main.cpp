@@ -98,17 +98,16 @@ void render(Context* ctx)
 	//spin_rads = 0.5f;
 	//spin_rads_slow = 0.3f;
 
-	ctx->getUnitQuad().render(ctx->getViewportSize()/2.f, vec2f(100.f, 100.f), 0.3f, ctx->empty_texture, RenderNameList(), "");
-	ctx->getScreenQuad().render(ctx->getViewportSize()/2.f, vec2f(1.f, 1.f), 0.f, ctx->getRenderTexture("abc"), RenderNameList(), "");
-/*
+	//ctx->getUnitQuad().render(ctx->getViewportSize()/2.f, vec2f(100.f, 100.f), 0.3f, ctx->empty_texture, RenderNameList(), "");
+	//ctx->getScreenQuad().render(ctx->getViewportSize()/2.f, vec2f(1.f, 1.f), 0.f, ctx->getRenderTexture("abc"), RenderNameList(), "");
+
 	std::vector<vec2f> verts;
 	verts.push_back(vec2f(100,100));
 	verts.push_back(vec2f(200,200));
 	verts.push_back(vec2f(400,200));
-	verts.push_back(vec2f(500,400));
+	//verts.push_back(vec2f(800,300));
 	LineCache lc(ctx, verts);
-	lc.getLine(10, LineCache::NONE).render(vec2f(), vec2f(1,1), 0.f, ctx->empty_texture, RenderNameList(), "");
-*/
+	lc.getLine(10, LineCache::NONE).render(vec2f(), vec2f(1,1), 0.f, ctx->white_texture, RenderNameList(), "");
 }
 
 void main_loop_iteration(void* v_ctx)

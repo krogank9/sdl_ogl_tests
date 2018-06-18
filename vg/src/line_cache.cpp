@@ -27,61 +27,50 @@ void LineCache::makeLine(float thickness, LINE_CAP_TYPE cap)
 
 	float half_thickness = thickness/2.f;
 
-	// *2 for (x,y) and *2 again for normal in both directions
-	int verts_arr_size = verts.size()*2*2;
 	// each quad uses 6 indices, 3 for each triangle
 	int quad_count = verts.size() - 1;
-	int indices_arr_size = quad_count*6;
+	int indices_arr_size = quad_count*6; // 3 indices per 2 tri for 1 quad
+	int verts_arr_size = quad_count*8; // 4 verts per quad, 2 coords x,y
 
 	GLfloat verts_arr[verts_arr_size];
 	GLfloat tex_coords_arr[verts_arr_size];
 	GLuint indices_arr[indices_arr_size];
 
-	float length_so_far = 0.f;
-	int prev_bot_index_x = 0;
-	int prev_bot_index_y = 0;
-	int prev_top_index_x = 0;
-	int prev_top_index_y = 0;
-	for (int i=0; i<verts.size(); i++)
+	for (unsigned int i=1; i<verts.size(); i++)
 	{
-		// each iteration sets 4 values top(x,y) bot(x,y)
-		int cur_top_index_x = i*4+0;
-		int cur_top_index_y = i*4+1;
-		int cur_bot_index_x = i*4+2;
-		int cur_bot_index_y = i*4+3;
+		vec2f prev = verts[i-1];
+		vec2f cur = verts[i];
 
-		// verts
-		vec2f top_vec = verts[i] - (normals[i] * half_thickness);
-		vec2f bot_vec = verts[i] + (normals[i] * half_thickness);
-		verts_arr[cur_top_index_x] = top_vec.x;
-		verts_arr[cur_top_index_y] = top_vec.y;
-		verts_arr[cur_bot_index_x] = bot_vec.x;
-		verts_arr[cur_bot_index_y] = bot_vec.y;
+		vec2f prev_top = prev - (normals[i-1] * half_thickness);
+		vec2f prev_bot = prev + (normals[i-1] * half_thickness);
+		vec2f cur_top = cur - (normals[i-1] * half_thickness);
+		vec2f cur_bot = cur + (normals[i-1] * half_thickness);
 
-		// texture
-		tex_coords_arr[cur_top_index_y] = 0.f;
-		tex_coords_arr[cur_bot_index_y] = thickness;
-		tex_coords_arr[cur_top_index_x] = length_so_far;
-		tex_coords_arr[cur_bot_index_x] = length_so_far;
+		verts_arr[(i-1)*8 + 0] = prev_top.x;
+		verts_arr[(i-1)*8 + 1] = prev_top.y;
+		verts_arr[(i-1)*8 + 2] = cur_top.x;
+		verts_arr[(i-1)*8 + 3] = cur_top.y;
+		verts_arr[(i-1)*8 + 4] = cur_bot.x;
+		verts_arr[(i-1)*8 + 5] = cur_bot.y;
+		verts_arr[(i-1)*8 + 6] = prev_bot.x;
+		verts_arr[(i-1)*8 + 7] = prev_bot.y;
 
-		// indices
-		if (i > 0)
-		{
-			// top triangle
-			indices_arr[(i-1)*6 + 0] = prev_top_index_x/2; // top left
-			indices_arr[(i-1)*6 + 1] = cur_top_index_x/2; // top right
-			indices_arr[(i-1)*6 + 2] = cur_bot_index_x/2; // bot right
-			// bot triangle
-			indices_arr[(i-1)*6 + 3] = prev_top_index_x/2; // top left
-			indices_arr[(i-1)*6 + 4] = cur_bot_index_x/2; // bot right
-			indices_arr[(i-1)*6 + 5] = prev_bot_index_x/2; // bot left
-		}
+		indices_arr[(i-1)*6 + 0] = (i-1)*4 + 0; // top triangle
+		indices_arr[(i-1)*6 + 1] = (i-1)*4 + 1;
+		indices_arr[(i-1)*6 + 2] = (i-1)*4 + 2;
+		indices_arr[(i-1)*6 + 3] = (i-1)*4 + 0; // bot triangle
+		indices_arr[(i-1)*6 + 4] = (i-1)*4 + 2;
+		indices_arr[(i-1)*6 + 5] = (i-1)*4 + 3;
 
-		prev_top_index_x = cur_top_index_x;
-		prev_top_index_y = cur_top_index_y;
-		prev_bot_index_x = cur_bot_index_x;
-		prev_bot_index_y = cur_bot_index_y;
-		length_so_far += relative_verts[i].length();
+		//
+		tex_coords_arr[(i-1)*8 + 0] = 0;
+		tex_coords_arr[(i-1)*8 + 1] = 0;
+		tex_coords_arr[(i-1)*8 + 2] = 0;
+		tex_coords_arr[(i-1)*8 + 3] = 0;
+		tex_coords_arr[(i-1)*8 + 4] = 0;
+		tex_coords_arr[(i-1)*8 + 5] = 0;
+		tex_coords_arr[(i-1)*8 + 6] = 0;
+		tex_coords_arr[(i-1)*8 + 7] = 0;
 	}
 
 	line = new TriCache(ctx, verts_arr, verts_arr_size, indices_arr, indices_arr_size, tex_coords_arr);
@@ -90,7 +79,7 @@ void LineCache::makeLine(float thickness, LINE_CAP_TYPE cap)
 void LineCache::makeNormals()
 {
 	// calculate relative verts
-	relative_verts.reserve(verts.size());
+	relative_verts.reserve(verts.size()-1);
 	std::vector<vec2f>::iterator it = verts.begin();
 
 	vec2f last_vert = *it;
@@ -102,19 +91,11 @@ void LineCache::makeNormals()
 	}
 
 	// calculate normals
-	normals.reserve(verts.size());
+	normals.reserve(relative_verts.size());
 	it = relative_verts.begin();
 
-	// line join normal = angle avg of two neighboring normals
-	vec2f prev = it->normalize().rotate90CW();
-	vec2f cur;
-
-	normals.push_back(prev); // first has only one neighbor
-	for (; it != (relative_verts.end()-1);)
+	for (; it != relative_verts.end();)
 	{
-		cur = (++it)->normalize().rotate90CW();
-		normals.push_back(prev.avgByAngleToCW(cur));
-		prev = cur;
+		normals.push_back((++it)->normalize().rotate90CW());
 	}
-	normals.push_back(cur); // last has only one neighbor
 }

@@ -15,8 +15,8 @@ file(GLOB nanovg_SRC
 file(GLOB nanovg_tests_SRC
     "src/*.h"
     "src/*.cpp"
-    "src/render/*.h"
-    "src/render/*.cpp"
+	"src/geom/*.h"
+	"src/geom/*.cpp"
     )
 
 list(FILTER nanovg_SRC EXCLUDE REGEX "src/main.*cpp")

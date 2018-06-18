@@ -12,16 +12,11 @@ class LineCache
 {
 public:
 	enum LINE_CAP_TYPE { NONE, BLOCK, ROUND };
+	enum LINE_JOIN_TYPE { MITER, BEVEL, ROUNDED };
 
 	LineCache(Context* ctx, const std::vector<vec2f>& verts);
 	~LineCache();
 
-	TriCache& getPolygon()
-	{
-		if (polygon == 0)
-			makePolygon();
-		return *polygon;
-	}
 	TriCache& getLine(float thickness, LINE_CAP_TYPE cap=NONE)
 	{
 		if (line == 0)
